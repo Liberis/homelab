@@ -1,0 +1,121 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 24h
+  url: https://traefik.github.io/charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: traefik
+      version: "39.*"
+      sourceRef:
+        kind: HelmRepository
+        name: traefik
+        namespace: traefik
+  values:
+    # Single replica for homelab
+    deployment:
+      replicas: 1
+
+    # Run on control plane
+    nodeSelector:
+      kubernetes.io/hostname: jarvis
+
+    # Global settings (v39+ structure)
+    global:
+      sendAnonymousUsage: false
+
+    # Entrypoints configuration
+    ports:
+      # HTTP - redirects to HTTPS
+      web:
+        port: 8000
+        expose:
+          default: true
+        exposedPort: 80
+        protocol: TCP
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
+
+      # HTTPS
+      websecure:
+        port: 8443
+        expose:
+          default: true
+        exposedPort: 443
+        protocol: TCP
+        http:
+          tls:
+            enabled: true
+
+      # SMB (Samba)
+      smb:
+        port: 4445
+        expose:
+          default: true
+        exposedPort: 445
+        protocol: TCP
+
+      # GitLab SSH
+      gitlab-ssh:
+        port: 2222
+        expose:
+          default: true
+        exposedPort: 2222
+        protocol: TCP
+
+    # Service configuration - single LoadBalancer with dedicated IP
+    service:
+      enabled: true
+      type: LoadBalancer
+      spec:
+        loadBalancerIP: 192.168.10.11
+        externalTrafficPolicy: Local
+        clusterIP: 10.43.0.100  # Static ClusterIP for CoreDNS hairpin NAT
+
+    # TLS store for default certificate
+    tlsStore:
+      default:
+        defaultCertificate:
+          secretName: liberispat-wildcard-tls
+
+    # Enable Kubernetes Ingress provider
+    providers:
+      kubernetesIngress:
+        enabled: true
+        publishedService:
+          enabled: true
+      kubernetesCRD:
+        enabled: true
+        allowCrossNamespace: true
+
+    # Logs
+    logs:
+      general:
+        level: INFO
+      access:
+        enabled: true
+
+    # Resources
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
