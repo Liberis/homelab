@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: jarvis-local-wildcard
+  namespace: kube-system
+spec:
+  secretName: jarvis-local-wildcard-tls
+  duration: 8760h # 1 year
+  renewBefore: 720h # 30 days
+  commonName: "*.jarvis.local"
+  dnsNames:
+    - "*.jarvis.local"
+    - "jarvis.local"
+  issuerRef:
+    name: jarvis-local-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
