@@ -1,0 +1,130 @@
+---
+# CronJob to configure Vault Kubernetes auth for external-secrets
+# Runs periodically to ensure config is present (idempotent)
+# Requires vault-root-token secret to be created manually:
+# kubectl create secret generic vault-root-token -n vault --from-literal=token=<ROOT_TOKEN>
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-config
+  namespace: vault
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: vault-config
+  namespace: vault
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["vault-root-token"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: vault-config
+  namespace: vault
+subjects:
+  - kind: ServiceAccount
+    name: vault-config
+    namespace: vault
+roleRef:
+  kind: Role
+  name: vault-config
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vault-kubernetes-auth
+  namespace: vault
+spec:
+  schedule: "*/5 * * * *"  # Every 5 minutes
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: vault-config
+          restartPolicy: OnFailure
+          containers:
+            - name: setup
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+
+                  # Check if Vault pod is ready
+                  if ! kubectl get pod vault-0 -n vault -o jsonpath='{.status.phase}' 2>/dev/null | grep -q Running; then
+                    echo "Vault pod not ready, skipping"
+                    exit 0
+                  fi
+
+                  # Check if Vault is unsealed
+                  # FIX: Use JSON format with exact string match for "sealed": false
+                  # Previous grep pattern failed to match correctly due to whitespace variations
+                  if ! kubectl exec vault-0 -n vault -- vault status -format=json 2>/dev/null | grep -q '"sealed": false'; then
+                    echo "Vault is sealed or not ready, skipping"
+                    exit 0
+                  fi
+
+                  # Check if vault-root-token exists
+                  ROOT_TOKEN=$(kubectl get secret vault-root-token -n vault -o jsonpath='{.data.token}' 2>/dev/null | base64 -d)
+                  if [ -z "$ROOT_TOKEN" ]; then
+                    echo "vault-root-token secret not found, skipping"
+                    echo "Create it with: kubectl create secret generic vault-root-token -n vault --from-literal=token=<ROOT_TOKEN>"
+                    exit 0
+                  fi
+
+                  # Check if kubernetes auth is already configured correctly
+                  if kubectl exec vault-0 -n vault -- sh -c "VAULT_TOKEN=$ROOT_TOKEN vault read auth/kubernetes/role/external-secrets" >/dev/null 2>&1; then
+                    echo "Kubernetes auth already configured"
+                    exit 0
+                  fi
+
+                  echo "Configuring Vault Kubernetes auth..."
+
+                  # Create policy file
+                  cat > /tmp/external-secrets-policy.hcl <<'EOF'
+                  path "secret/*" {
+                    capabilities = ["read", "list"]
+                  }
+                  path "secret/data/*" {
+                    capabilities = ["read", "list"]
+                  }
+                  path "secret/metadata/*" {
+                    capabilities = ["read", "list"]
+                  }
+                  EOF
+
+                  # Copy policy to vault pod and apply
+                  echo "Creating external-secrets policy..."
+                  kubectl cp /tmp/external-secrets-policy.hcl vault/vault-0:/tmp/external-secrets-policy.hcl
+                  kubectl exec vault-0 -n vault -- sh -c "VAULT_TOKEN=$ROOT_TOKEN vault policy write external-secrets /tmp/external-secrets-policy.hcl"
+
+                  # Enable Kubernetes auth
+                  echo "Enabling Kubernetes auth..."
+                  kubectl exec vault-0 -n vault -- sh -c "VAULT_TOKEN=$ROOT_TOKEN vault auth enable kubernetes 2>/dev/null || echo 'Kubernetes auth already enabled'"
+
+                  # Configure Kubernetes auth
+                  echo "Configuring Kubernetes auth..."
+                  kubectl exec vault-0 -n vault -- sh -c "VAULT_TOKEN=$ROOT_TOKEN vault write auth/kubernetes/config kubernetes_host='https://kubernetes.default.svc:443' kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+
+                  # Create role for external-secrets
+                  # FIX: Added explicit 'audience=vault' parameter - required for external-secrets
+                  # operator to authenticate. Without this, JWT validation fails silently.
+                  echo "Creating external-secrets role..."
+                  kubectl exec vault-0 -n vault -- sh -c "VAULT_TOKEN=$ROOT_TOKEN vault write auth/kubernetes/role/external-secrets bound_service_account_names=external-secrets bound_service_account_namespaces=external-secrets policies=external-secrets audience=vault ttl=1h"
+
+                  echo "Vault Kubernetes auth configured successfully!"

@@ -1,0 +1,85 @@
+---
+# NOTE: The vault-unseal-key secret must be created manually:
+# kubectl create secret generic vault-unseal-key -n vault --from-literal=unseal-key=<YOUR_UNSEAL_KEY>
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-unseal
+  namespace: vault
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: vault-unseal
+  namespace: vault
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["vault-unseal-key"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: vault-unseal
+  namespace: vault
+subjects:
+  - kind: ServiceAccount
+    name: vault-unseal
+    namespace: vault
+roleRef:
+  kind: Role
+  name: vault-unseal
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vault-unseal
+  namespace: vault
+spec:
+  schedule: "* * * * *"  # Every minute
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: vault-unseal
+          containers:
+            - name: unseal
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  # Check if vault is sealed
+                  SEALED=$(kubectl exec vault-0 -n vault -- vault status -format=json 2>/dev/null | grep -o '"sealed": *[^,]*' | awk '{print $2}')
+
+                  if [ "$SEALED" = "true" ]; then
+                    echo "Vault is sealed, unsealing..."
+                    UNSEAL_KEY=$(cat /etc/vault-unseal/unseal-key)
+                    kubectl exec vault-0 -n vault -- vault operator unseal "$UNSEAL_KEY"
+                    echo "Vault unsealed successfully"
+                  elif [ "$SEALED" = "false" ]; then
+                    echo "Vault is already unsealed"
+                  else
+                    echo "Could not determine vault status (may be initializing)"
+                  fi
+              volumeMounts:
+                - name: unseal-key
+                  mountPath: /etc/vault-unseal
+                  readOnly: true
+          volumes:
+            - name: unseal-key
+              secret:
+                secretName: vault-unseal-key
+          restartPolicy: OnFailure
