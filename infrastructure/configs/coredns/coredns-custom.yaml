@@ -1,0 +1,26 @@
+---
+# Custom CoreDNS configuration
+# Fixes hairpin NAT by resolving *.liberispat.com to Traefik's ClusterIP
+# This allows pods to access services via their external URLs
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  # Server block for liberispat.com domain
+  # Uses zone file with wildcard to resolve all subdomains to Traefik
+  liberispat.server: |
+    liberispat.com:53 {
+      file /etc/coredns/custom/liberispat.db
+      errors
+      log
+    }
+  # Zone file for liberispat.com
+  # Traefik ClusterIP: 10.43.0.100 (static, set in helmrelease)
+  liberispat.db: |
+    $ORIGIN liberispat.com.
+    @    3600 IN SOA  ns.liberispat.com. admin.liberispat.com. 2024010101 3600 600 604800 1800
+    @    3600 IN NS   ns.liberispat.com.
+    @    60   IN A    10.43.0.100
+    *    60   IN A    10.43.0.100

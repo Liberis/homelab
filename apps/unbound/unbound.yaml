@@ -1,0 +1,95 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: unbound
+spec:
+  interval: 24h
+  url: https://bjw-s-labs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: unbound
+  namespace: unbound
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: unbound
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: klutchell/unbound
+              tag: latest
+            env:
+              TZ: "Europe/London"
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  exec:
+                    command:
+                      - drill
+                      - "@127.0.0.1"
+                      - -p
+                      - "53"
+                      - cloudflare.com
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                spec:
+                  exec:
+                    command:
+                      - drill
+                      - "@127.0.0.1"
+                      - -p
+                      - "53"
+                      - cloudflare.com
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+              startup:
+                enabled: true
+                spec:
+                  exec:
+                    command:
+                      - drill
+                      - "@127.0.0.1"
+                      - -p
+                      - "53"
+                      - cloudflare.com
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                cpu: 500m
+                memory: 256Mi
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+
+    service:
+      main:
+        controller: main
+        type: ClusterIP
+        ports:
+          dns-tcp:
+            port: 53
+            protocol: TCP
+          dns-udp:
+            port: 53
+            protocol: UDP
