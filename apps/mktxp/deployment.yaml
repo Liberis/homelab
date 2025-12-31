@@ -1,0 +1,68 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mktxp
+  namespace: mktxp
+  labels:
+    app: mktxp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mktxp
+  template:
+    metadata:
+      labels:
+        app: mktxp
+    spec:
+      containers:
+        - name: mktxp
+          image: ghcr.io/akpw/mktxp:latest
+          ports:
+            - containerPort: 49090
+              name: metrics
+          volumeMounts:
+            - name: config
+              mountPath: /home/mktxp/mktxp
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+      volumes:
+        - name: config
+          secret:
+            secretName: mktxp-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mktxp
+  namespace: mktxp
+  labels:
+    app: mktxp
+spec:
+  selector:
+    app: mktxp
+  ports:
+    - port: 49090
+      targetPort: metrics
+      name: metrics
