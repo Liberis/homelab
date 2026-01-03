@@ -1,0 +1,123 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: samba-data
+  namespace: samba
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zfs-nfs
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samba
+  namespace: samba
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: samba
+  template:
+    metadata:
+      labels:
+        app: samba
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+      containers:
+        - name: samba
+          image: dperson/samba:latest
+          env:
+            - name: TZ
+              value: "UTC"
+            - name: SMB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: samba-credentials
+                  key: SMB_USER
+            - name: SMB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: samba-credentials
+                  key: SMB_PASSWORD
+          # Share format: name;path;browseable;readonly;guest;users;admins;writelist
+          # User is created via command using env vars
+          command:
+            - /bin/sh
+            - -c
+            - |
+              /usr/bin/samba.sh -u "$SMB_USER;$SMB_PASSWORD" \
+                -s "music;/share/music;yes;no;no;$SMB_USER;$SMB_USER;$SMB_USER" \
+                -s "data;/share/data;yes;no;no;$SMB_USER;$SMB_USER;$SMB_USER" \
+                -s "share;/share/zfs;yes;no;no;$SMB_USER;$SMB_USER;$SMB_USER"
+          ports:
+            - containerPort: 445
+              name: smb
+          volumeMounts:
+            - name: samba-data
+              mountPath: /share/data
+            - name: music-share
+              mountPath: /share/music
+            - name: zfs-share
+              mountPath: /share/zfs
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+      volumes:
+        - name: samba-data
+          persistentVolumeClaim:
+            claimName: samba-data
+        # hostPath to shared music directory on ZFS (tank/media)
+        - name: music-share
+          hostPath:
+            path: /mnt/media
+            type: Directory
+        # hostPath to ZFS share directory
+        - name: zfs-share
+          hostPath:
+            path: /mnt/shares
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: samba
+  namespace: samba
+spec:
+  type: ClusterIP
+  ports:
+    - port: 445
+      targetPort: 445
+      protocol: TCP
+      name: smb
+  selector:
+    app: samba
+---
+# IngressRouteTCP for SMB through Traefik
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: samba
+  namespace: samba
+spec:
+  entryPoints:
+    - smb
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: samba
+          port: 445

@@ -1,0 +1,164 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: qbittorrent
+spec:
+  interval: 24h
+  url: https://bjw-s-labs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: qbittorrent
+  namespace: qbittorrent
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: qbittorrent
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: linuxserver/qbittorrent
+              tag: latest
+            env:
+              TZ: "Europe/London"
+              PUID: "1000"
+              PGID: "1000"
+              WEBUI_PORT: "8080"
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8080
+              readiness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8080
+              startup:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8080
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                cpu: 2000m
+                memory: 2Gi
+          qui:
+            image:
+              repository: ghcr.io/autobrr/qui
+              tag: latest
+            env:
+              TZ: "Europe/London"
+              QUI__PORT: "7476"
+              QUI__LOG_LEVEL: "info"
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 7476
+              readiness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 7476
+              startup:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 7476
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                cpu: 500m
+                memory: 256Mi
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+
+    service:
+      main:
+        controller: main
+        type: ClusterIP
+        ports:
+          http:
+            port: 7476
+          qbittorrent:
+            port: 8080
+      bittorrent:
+        controller: main
+        type: ClusterIP
+        ports:
+          bittorrent-tcp:
+            port: 6881
+            protocol: TCP
+          bittorrent-udp:
+            port: 6881
+            protocol: UDP
+
+    persistence:
+      config:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: zfs-nfs
+        advancedMounts:
+          main:
+            main:
+              - path: /config
+      qui-config:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 256Mi
+        storageClass: zfs-nfs
+        advancedMounts:
+          main:
+            qui:
+              - path: /config
+      downloads:
+        enabled: true
+        type: hostPath
+        hostPath: /mnt/media/downloads
+        advancedMounts:
+          main:
+            main:
+              - path: /downloads
+      media:
+        enabled: true
+        type: hostPath
+        hostPath: /mnt/media
+        advancedMounts:
+          main:
+            main:
+              - path: /media

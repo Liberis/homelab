@@ -1,0 +1,107 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: zerobyte
+spec:
+  interval: 24h
+  url: https://bjw-s-labs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: zerobyte
+  namespace: zerobyte
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: zerobyte
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/nicotsx/zerobyte
+              tag: v0.22
+            env:
+              TZ: "Europe/London"
+              PORT: "4096"
+              RESTIC_HOSTNAME: "jarvis"
+              LOG_LEVEL: "info"
+              TRUSTED_ORIGINS: "https://zerobyte.liberispat.com"
+            securityContext:
+              capabilities:
+                add:
+                  - SYS_ADMIN
+              privileged: true
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 4096
+              readiness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 4096
+              startup:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 4096
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                cpu: 2000m
+                memory: 2Gi
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+
+    service:
+      main:
+        controller: main
+        type: ClusterIP
+        ports:
+          http:
+            port: 4096
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: zfs-nfs
+        globalMounts:
+          - path: /var/lib/zerobyte
+      dev-fuse:
+        enabled: true
+        type: hostPath
+        hostPath: /dev/fuse
+        globalMounts:
+          - path: /dev/fuse
+      media:
+        enabled: true
+        type: hostPath
+        hostPath: /mnt/media
+        globalMounts:
+          - path: /mnt/media
+            readOnly: true
