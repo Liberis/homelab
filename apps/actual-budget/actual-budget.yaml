@@ -1,0 +1,47 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: community-charts
+  namespace: actual-budget
+spec:
+  interval: 24h
+  url: https://community-charts.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: actual-budget
+  namespace: actual-budget
+spec:
+  interval: 30m
+  timeout: 15m
+  chart:
+    spec:
+      chart: actualbudget
+      version: "1.*"
+      sourceRef:
+        kind: HelmRepository
+        name: community-charts
+        namespace: actual-budget
+  values:
+    # Persistence Configuration
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: zfs-nfs
+      accessModes:
+        - ReadWriteOnce
+
+    # Resources
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    # Run on control plane with ZFS
+    nodeSelector:
+      kubernetes.io/hostname: jarvis

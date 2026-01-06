@@ -1,0 +1,256 @@
+---
+# PostgreSQL Cluster for Vikunja using CloudNative PG
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: vikunja-postgres
+  namespace: vikunja
+spec:
+  instances: 1
+  primaryUpdateStrategy: unsupervised
+
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.2
+
+  storage:
+    size: 5Gi
+    storageClass: zfs-nfs-db
+
+  postgresql:
+    parameters:
+      shared_buffers: "128MB"
+      max_connections: "50"
+
+  bootstrap:
+    initdb:
+      database: vikunja
+      owner: vikunja
+      secret:
+        name: vikunja-postgres-credentials
+
+  affinity:
+    nodeSelector:
+      kubernetes.io/hostname: jarvis
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: vikunja
+spec:
+  interval: 24h
+  url: https://bjw-s-labs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vikunja
+  namespace: vikunja
+spec:
+  interval: 30m
+  timeout: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: "3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: vikunja
+  values:
+    controllers:
+      # Valkey (Redis replacement)
+      # FIX: Switched from Redis to Valkey - Redis license change made it non-FOSS
+      # Valkey is a drop-in replacement with identical Redis protocol
+      valkey:
+        containers:
+          main:
+            image:
+              repository: valkey/valkey
+              tag: 8-alpine
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                cpu: 200m
+                memory: 128Mi
+
+      # Typesense for search
+      # FIX: Probes must use custom spec structure with bjw-s app-template chart
+      # Previous attempt using simple httpGet at top level caused template errors
+      typesense:
+        containers:
+          main:
+            image:
+              repository: typesense/typesense
+              tag: 27.1
+            env:
+              TYPESENSE_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: vikunja-credentials
+                    key: typesense_api_key
+              TYPESENSE_DATA_DIR: /data
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8108
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8108
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+      # Main Vikunja application
+      main:
+        containers:
+          main:
+            image:
+              repository: vikunja/vikunja
+              tag: 0.24.6
+            env:
+              TZ: "Europe/Athens"
+              VIKUNJA_SERVICE_PUBLICURL: "https://vikunja.liberispat.com"
+              VIKUNJA_SERVICE_ENABLEREGISTRATION: "true"
+              # Database configuration - using CNPG
+              VIKUNJA_DATABASE_TYPE: "postgres"
+              VIKUNJA_DATABASE_HOST: "vikunja-postgres-rw"
+              VIKUNJA_DATABASE_DATABASE: "vikunja"
+              VIKUNJA_DATABASE_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: vikunja-credentials
+                    key: db_username
+              VIKUNJA_DATABASE_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: vikunja-credentials
+                    key: db_password
+              # Valkey (Redis-compatible) configuration
+              VIKUNJA_REDIS_ENABLED: "true"
+              VIKUNJA_REDIS_HOST: "vikunja-valkey:6379"
+              # Typesense configuration
+              VIKUNJA_TYPESENSE_ENABLED: "true"
+              VIKUNJA_TYPESENSE_URL: "http://vikunja-typesense:8108"
+              VIKUNJA_TYPESENSE_APIKEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: vikunja-credentials
+                    key: typesense_api_key
+              # JWT secret
+              VIKUNJA_SERVICE_JWTSECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: vikunja-credentials
+                    key: jwt_secret
+              # OIDC: Vikunja 0.24.x doesn't support OIDC via env vars
+              # Requires config file mount - see https://vikunja.io/docs/openid/
+              VIKUNJA_AUTH_OPENID_ENABLED: "false"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/info
+                    port: 3456
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/info
+                    port: 3456
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/info
+                    port: 3456
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 3456
+      valkey:
+        controller: valkey
+        ports:
+          redis:
+            port: 6379
+      typesense:
+        controller: typesense
+        ports:
+          http:
+            port: 8108
+
+    # FIX: Persistence must use advancedMounts to target specific controllers
+    # in multi-controller deployments. Using globalMounts caused volumes to
+    # mount in all containers, breaking Typesense data directory.
+    persistence:
+      vikunja-data:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        storageClass: zfs-nfs
+        advancedMounts:
+          main:
+            main:
+              - path: /app/vikunja/files
+      valkey-data:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: zfs-nfs
+        advancedMounts:
+          valkey:
+            main:
+              - path: /data
+      typesense-data:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: zfs-nfs
+        advancedMounts:
+          typesense:
+            main:
+              - path: /data
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis

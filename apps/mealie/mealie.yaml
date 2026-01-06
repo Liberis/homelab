@@ -1,0 +1,82 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: mealie
+  namespace: mealie
+spec:
+  interval: 24h
+  url: https://jvalskis.github.io/mealie-helm/
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: mealie
+  namespace: mealie
+spec:
+  interval: 30m
+  timeout: 15m
+  chart:
+    spec:
+      chart: mealie
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: mealie
+        namespace: mealie
+  values:
+    controllers:
+      main:
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: ghcr.io/mealie-recipes/mealie
+              tag: v3.9.1
+            env:
+              TZ: "Europe/Athens"
+              ALLOW_SIGNUP: "false"
+              BASE_URL: "https://mealie.liberispat.com"
+              # Use default credentials from secret
+              DEFAULT_EMAIL:
+                valueFrom:
+                  secretKeyRef:
+                    name: mealie-credentials
+                    key: admin_email
+              DEFAULT_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: mealie-credentials
+                    key: admin_password
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 9000
+
+    ingress:
+      main:
+        enabled: false
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: zfs-nfs-db
+        globalMounts:
+          - path: /app/data
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
