@@ -1,0 +1,55 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: gissilabs
+  namespace: vaultwarden
+spec:
+  interval: 24h
+  url: https://gissilabs.github.io/charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vaultwarden
+  namespace: vaultwarden
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: vaultwarden
+      version: "1.*"
+      sourceRef:
+        kind: HelmRepository
+        name: gissilabs
+        namespace: vaultwarden
+  values:
+    domain: https://passwords.liberispat.com
+
+    # Admin interface - token from Vault
+    admin:
+      enabled: true
+      existingSecret: vaultwarden-admin
+      tokenKey: token
+
+    # Signups (disable after creating your account)
+    signups:
+      enabled: true
+
+    # Persistence
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: zfs-nfs-db
+
+    # Resources
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+    nodeSelector:
+      kubernetes.io/hostname: jarvis

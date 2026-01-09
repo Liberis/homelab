@@ -1,0 +1,204 @@
+---
+# GitLab Omnibus Docker Deployment
+# Much simpler than Helm - single container with all components built-in
+# FIX: Switched from GitLab Helm chart to Omnibus Docker due to:
+# - Helm chart requires 8GB+ RAM minimum, complex RBAC setup
+# - Omnibus provides same functionality with simpler configuration
+# - Recreate strategy required (no rolling updates for stateful monolith)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: gitlab
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+      containers:
+        - name: gitlab
+          image: gitlab/gitlab-ce:latest
+          ports:
+            - name: http
+              containerPort: 80
+            - name: https
+              containerPort: 443
+            - name: ssh
+              containerPort: 22
+          env:
+            - name: GITLAB_OMNIBUS_CONFIG
+              value: |
+                external_url 'https://gitlab.liberispat.com'
+                nginx['listen_port'] = 80
+                nginx['listen_https'] = false
+                gitlab_rails['initial_root_password'] = ENV['GITLAB_ROOT_PASSWORD']
+
+                # Disable Let's Encrypt (we use Traefik for TLS)
+                letsencrypt['enable'] = false
+
+                # SSH settings - use port 2222 to avoid conflict with host SSH
+                gitlab_rails['gitlab_shell_ssh_port'] = 2222
+
+                # Registry (disabled for now)
+                registry['enable'] = false
+
+                # Reduce memory usage for homelab
+                puma['worker_processes'] = 2
+                sidekiq['max_concurrency'] = 10
+                postgresql['shared_buffers'] = "256MB"
+                prometheus_monitoring['enable'] = false
+            - name: GITLAB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-credentials
+                  key: root_password
+          resources:
+            requests:
+              cpu: 2000m
+              memory: 4Gi
+            limits:
+              cpu: 4000m
+              memory: 8Gi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/gitlab
+            - name: logs
+              mountPath: /var/log/gitlab
+            - name: data
+              mountPath: /var/opt/gitlab
+          # FIX: GitLab takes 10-15 min to initialize on first boot
+          # Standard readiness/liveness probes caused premature restarts
+          # Solution: Disabled probes until stable, rely on Deployment status
+          # TODO: Re-enable with increased failureThreshold (30+) once stable
+          # startupProbe:
+          #   httpGet:
+          #     path: /-/health
+          #     port: 80
+          #     httpHeaders:
+          #       - name: Host
+          #         value: gitlab.jarvis.local
+          #   initialDelaySeconds: 60
+          #   periodSeconds: 30
+          #   failureThreshold: 30
+          # livenessProbe:
+          #   httpGet:
+          #     path: /-/health
+          #     port: 80
+          #     httpHeaders:
+          #       - name: Host
+          #         value: gitlab.jarvis.local
+          #   periodSeconds: 30
+          #   timeoutSeconds: 10
+          # readinessProbe:
+          #   httpGet:
+          #     path: /-/readiness
+          #     port: 80
+          #     httpHeaders:
+          #       - name: Host
+          #         value: gitlab.jarvis.local
+          #   periodSeconds: 10
+          #   timeoutSeconds: 5
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: gitlab-config
+        - name: logs
+          persistentVolumeClaim:
+            claimName: gitlab-logs
+        - name: data
+          persistentVolumeClaim:
+            claimName: gitlab-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-config
+  namespace: gitlab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zfs-nfs
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-logs
+  namespace: gitlab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zfs-nfs
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-data
+  namespace: gitlab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zfs-nfs
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  selector:
+    app: gitlab
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+    - name: https
+      port: 443
+      targetPort: 443
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab-ssh
+  namespace: gitlab
+spec:
+  type: ClusterIP
+  selector:
+    app: gitlab
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+      protocol: TCP
+---
+# IngressRouteTCP for GitLab SSH through Traefik
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: gitlab-ssh
+  namespace: gitlab
+spec:
+  entryPoints:
+    - gitlab-ssh
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: gitlab-ssh
+          port: 22

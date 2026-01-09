@@ -1,0 +1,103 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: harbor
+  namespace: harbor
+spec:
+  interval: 24h
+  url: https://helm.goharbor.io
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: harbor
+  namespace: harbor
+spec:
+  interval: 30m
+  timeout: 15m
+  chart:
+    spec:
+      chart: harbor
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: harbor
+        namespace: harbor
+  values:
+    expose:
+      type: ingress
+      tls:
+        enabled: true
+        certSource: secret
+        secret:
+          secretName: liberispat-wildcard-tls
+      ingress:
+        hosts:
+          core: registry.liberispat.com
+        className: traefik
+        annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: websecure
+          traefik.ingress.kubernetes.io/router.tls: "true"
+
+    externalURL: https://registry.liberispat.com
+
+    harborAdminPassword: ""
+    existingSecretAdminPassword: harbor-credentials
+    existingSecretAdminPasswordKey: admin_password
+
+    existingSecretSecretKey: harbor-credentials
+
+    persistence:
+      enabled: true
+      persistentVolumeClaim:
+        registry:
+          storageClass: zfs-nfs
+          size: 50Gi
+        jobservice:
+          storageClass: zfs-nfs
+          size: 1Gi
+        database:
+          storageClass: zfs-nfs-db
+          size: 5Gi
+        redis:
+          storageClass: zfs-nfs
+          size: 1Gi
+        trivy:
+          storageClass: zfs-nfs
+          size: 5Gi
+
+    database:
+      type: internal
+      internal:
+        nodeSelector:
+          kubernetes.io/hostname: jarvis
+
+    redis:
+      type: internal
+      internal:
+        nodeSelector:
+          kubernetes.io/hostname: jarvis
+
+    trivy:
+      enabled: true
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+    portal:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+    core:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+    jobservice:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+    registry:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis

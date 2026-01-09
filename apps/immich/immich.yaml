@@ -1,0 +1,132 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  interval: 24h
+  url: https://immich-app.github.io/immich-charts
+---
+# PostgreSQL Cluster for Immich with pgvector support
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-postgres
+  namespace: immich
+spec:
+  instances: 1
+  primaryUpdateStrategy: unsupervised
+
+  # Use pgvecto.rs image for Immich (v0.3.x required by Immich v2.0.0)
+  imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:16.5-v0.3.0
+
+  storage:
+    size: 10Gi
+    storageClass: zfs-nfs-db
+
+  postgresql:
+    parameters:
+      shared_buffers: "256MB"
+      max_connections: "100"
+    shared_preload_libraries:
+      - "vectors.so"
+
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+      secret:
+        name: immich-postgres-credentials
+      postInitTemplateSQL:
+        - CREATE EXTENSION IF NOT EXISTS vectors;
+        - CREATE EXTENSION IF NOT EXISTS cube;
+        - CREATE EXTENSION IF NOT EXISTS earthdistance CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS pg_trgm;
+      postInitApplicationSQL:
+        - GRANT ALL ON SCHEMA vectors TO immich;
+        - GRANT ALL ON ALL TABLES IN SCHEMA vectors TO immich;
+        - GRANT ALL ON ALL FUNCTIONS IN SCHEMA vectors TO immich;
+        - ALTER DEFAULT PRIVILEGES IN SCHEMA vectors GRANT ALL ON TABLES TO immich;
+        - ALTER DEFAULT PRIVILEGES IN SCHEMA vectors GRANT ALL ON FUNCTIONS TO immich;
+
+  affinity:
+    nodeSelector:
+      kubernetes.io/hostname: jarvis
+---
+# Immich application
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  interval: 30m
+  timeout: 15m
+  chart:
+    spec:
+      chart: immich
+      version: "0.*"
+      sourceRef:
+        kind: HelmRepository
+        name: immich
+        namespace: immich
+  values:
+    # Library storage
+    immich:
+      persistence:
+        library:
+          existingClaim: immich-library
+
+    # Server configuration with database connection
+    server:
+      controllers:
+        main:
+          containers:
+            main:
+              env:
+                DB_HOSTNAME: immich-postgres-rw
+                DB_DATABASE_NAME: immich
+              envFrom:
+                - secretRef:
+                    name: immich-db-env
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 2000m
+                  memory: 2Gi
+
+    # Valkey (Redis replacement)
+    valkey:
+      enabled: true
+      persistence:
+        data:
+          type: persistentVolumeClaim
+          accessMode: ReadWriteOnce
+          size: 1Gi
+          storageClass: zfs-nfs
+
+    # Machine learning
+    machine-learning:
+      enabled: true
+      persistence:
+        cache:
+          type: persistentVolumeClaim
+          accessMode: ReadWriteMany
+          size: 10Gi
+          storageClass: zfs-nfs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-library
+  namespace: immich
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zfs-nfs
+  resources:
+    requests:
+      storage: 200Gi
