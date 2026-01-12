@@ -1,0 +1,106 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: homeassistant
+spec:
+  interval: 24h
+  url: https://bjw-s-labs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: homeassistant
+  namespace: homeassistant
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: homeassistant
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/home-assistant/home-assistant
+              tag: stable
+            env:
+              TZ: "Europe/London"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                cpu: 2000m
+                memory: 2Gi
+            securityContext:
+              privileged: true
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+
+    service:
+      main:
+        controller: main
+        type: ClusterIP
+        ports:
+          http:
+            port: 8123
+
+    persistence:
+      config:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: zfs-nfs
+        globalMounts:
+          - path: /config
+      config-file:
+        enabled: true
+        type: configMap
+        name: homeassistant-config
+        globalMounts:
+          - path: /config/configuration.yaml
+            subPath: configuration.yaml
+
+    configMaps:
+      config:
+        enabled: true
+        data:
+          configuration.yaml: |
+            # Home Assistant Configuration
+            homeassistant:
+              name: Home
+              unit_system: metric
+              time_zone: Europe/London
+              external_url: "https://hass.liberispat.com"
+              internal_url: "https://hass.liberispat.com"
+
+            http:
+              use_x_forwarded_for: true
+              trusted_proxies:
+                - 10.42.0.0/16
+                - 10.43.0.0/16
+                - 127.0.0.1
+
+            # Default config
+            default_config:
