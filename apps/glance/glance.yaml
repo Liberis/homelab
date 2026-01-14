@@ -1,0 +1,464 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: glance
+spec:
+  interval: 24h
+  url: https://bjw-s-labs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: glance
+  namespace: glance
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: glance
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: glanceapp/glance
+              tag: latest
+            env:
+              TZ: "Europe/London"
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8080
+              readiness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8080
+              startup:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8080
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                cpu: 200m
+                memory: 128Mi
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+
+    service:
+      main:
+        controller: main
+        type: ClusterIP
+        ports:
+          http:
+            port: 8080
+
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: glance-config
+        globalMounts:
+          - path: /app/config/glance.yml
+            subPath: glance.yaml
+
+    configMaps:
+      config:
+        enabled: true
+        data:
+          glance.yaml: |
+            server:
+              port: 8080
+
+            theme:
+              background-color: 240 8 10
+              contrast-multiplier: 1.2
+              primary-color: 217 70 70
+              positive-color: 150 60 50
+              negative-color: 0 70 60
+
+            pages:
+              - name: Home
+                columns:
+                  - size: small
+                    widgets:
+                      - type: clock
+                        hour-format: 24h
+                        timezones:
+                          - timezone: Europe/London
+                            label: London
+
+                      - type: search
+                        search-engine: duckduckgo
+
+                      - type: monitor
+                        cache: 1m
+                        title: Services
+                        sites:
+                          - title: Grafana
+                            url: https://grafana.liberispat.com
+                            icon: si:grafana
+                          - title: Prometheus
+                            url: https://prometheus.liberispat.com
+                            icon: si:prometheus
+                          - title: Home Assistant
+                            url: https://hass.liberispat.com
+                            icon: si:homeassistant
+                          - title: AdGuard
+                            url: https://adguard.liberispat.com
+                            icon: si:adguard
+                          - title: Vault
+                            url: https://vault.liberispat.com
+                            icon: si:vault
+                          - title: ChangeDetection
+                            url: https://changedetection.liberispat.com
+                            icon: si:iconify
+
+                  - size: full
+                    widgets:
+                      - type: bookmarks
+                        groups:
+                          - title: Monitoring
+                            color: 217 70 70
+                            links:
+                              - title: Grafana
+                                url: https://grafana.liberispat.com
+                                icon: si:grafana
+                              - title: Prometheus
+                                url: https://prometheus.liberispat.com
+                                icon: si:prometheus
+                              - title: Alertmanager
+                                url: https://alertmanager.liberispat.com
+                                icon: si:alertmanager
+                              - title: Uptime Kuma
+                                url: https://uptime.liberispat.com
+                                icon: si:uptimekuma
+                              - title: ChangeDetection
+                                url: https://changedetection.liberispat.com
+                                icon: si:iconify
+
+                      - type: bookmarks
+                        groups:
+                          - title: Infrastructure
+                            color: 200 60 50
+                            links:
+                              - title: HashiCorp Vault
+                                url: https://vault.liberispat.com
+                                icon: si:vault
+                              - title: Harbor Registry
+                                url: https://registry.liberispat.com
+                                icon: si:harbor
+                              - title: GitLab
+                                url: https://gitlab.liberispat.com
+                                icon: si:gitlab
+                              - title: Flux CD
+                                url: https://flux.liberispat.com
+                                icon: si:flux
+                              - title: ZeroByte
+                                url: https://zerobyte.liberispat.com
+                                icon: si:restic
+                              - title: Headlamp
+                                url: https://k8s.liberispat.com
+                                icon: si:kubernetes
+
+                      - type: bookmarks
+                        groups:
+                          - title: Network
+                            color: 150 60 50
+                            links:
+                              - title: AdGuard Home
+                                url: https://adguard.liberispat.com
+                                icon: si:adguard
+                              - title: MikroTik Metrics
+                                url: https://grafana.liberispat.com/d/mktxp-dashboard
+                                icon: si:mikrotik
+
+                      - type: bookmarks
+                        groups:
+                          - title: Home
+                            color: 40 70 60
+                            links:
+                              - title: Home Assistant
+                                url: https://hass.liberispat.com
+                                icon: si:homeassistant
+                              - title: Mealie
+                                url: https://mealie.liberispat.com
+                                icon: si:mealie
+
+                      - type: bookmarks
+                        groups:
+                          - title: Media
+                            color: 280 60 60
+                            links:
+                              - title: Jellyfin
+                                url: https://jellyfin.liberispat.com
+                                icon: si:jellyfin
+                              - title: Navidrome
+                                url: https://navidrome.liberispat.com
+                                icon: si:navidrome
+                              - title: Audiobookshelf
+                                url: https://audiobookshelf.liberispat.com
+                                icon: si:audiobookshelf
+                              - title: Immich Photos
+                                url: https://photos.liberispat.com
+                                icon: si:immich
+
+                      - type: bookmarks
+                        groups:
+                          - title: Downloads
+                            color: 30 70 55
+                            links:
+                              - title: qBittorrent
+                                url: https://qui.liberispat.com
+                                icon: si:qbittorrent
+                              - title: Prowlarr
+                                url: https://prowlarr.liberispat.com
+                                icon: si:prowlarr
+                              - title: Sonarr
+                                url: https://sonarr.liberispat.com
+                                icon: si:sonarr
+                              - title: Radarr
+                                url: https://radarr.liberispat.com
+                                icon: si:radarr
+                              - title: Lidarr
+                                url: https://lidarr.liberispat.com
+                                icon: si:lidarr
+                              - title: LazyLibrarian
+                                url: https://lazylibrarian.liberispat.com
+                                icon: si:bookstack
+                              - title: Bazarr
+                                url: https://bazarr.liberispat.com
+                                icon: si:bazarr
+
+                      - type: bookmarks
+                        groups:
+                          - title: Productivity
+                            color: 320 60 55
+                            links:
+                              - title: Vikunja
+                                url: https://vikunja.liberispat.com
+                                icon: si:vikunja
+                              - title: Paperless-ngx
+                                url: https://paperless.liberispat.com
+                                icon: si:paperlessngx
+                              - title: Actual Budget
+                                url: https://budget.liberispat.com
+                                icon: si:actualbudget
+                              - title: Vaultwarden
+                                url: https://passwords.liberispat.com
+                                icon: si:vaultwarden
+                              - title: FileBrowser
+                                url: https://files.liberispat.com
+                                icon: si:files
+
+              - name: DevOps
+                columns:
+                  - size: small
+                    widgets:
+                      - type: clock
+                        hour-format: 24h
+                        timezones:
+                          - timezone: Europe/London
+                            label: London
+                          - timezone: America/New_York
+                            label: New York
+                          - timezone: America/Los_Angeles
+                            label: San Francisco
+
+                      - type: search
+                        search-engine: duckduckgo
+
+                      - type: bookmarks
+                        groups:
+                          - title: Quick Links
+                            color: 217 70 70
+                            links:
+                              - title: Kubernetes Docs
+                                url: https://kubernetes.io/docs/
+                                icon: si:kubernetes
+                              - title: Flux CD Docs
+                                url: https://fluxcd.io/docs/
+                                icon: si:flux
+                              - title: Helm Hub
+                                url: https://artifacthub.io/
+                                icon: si:helm
+                              - title: Docker Hub
+                                url: https://hub.docker.com/
+                                icon: si:docker
+
+                  - size: full
+                    widgets:
+                      - type: rss
+                        title: Kubernetes Blog
+                        style: detailed-list
+                        limit: 8
+                        collapse-after: 5
+                        feeds:
+                          - url: https://kubernetes.io/feed.xml
+
+                      - type: rss
+                        title: CNCF Blog
+                        style: detailed-list
+                        limit: 8
+                        collapse-after: 5
+                        feeds:
+                          - url: https://www.cncf.io/blog/feed/
+
+                  - size: full
+                    widgets:
+                      - type: rss
+                        title: HashiCorp Blog
+                        style: detailed-list
+                        limit: 6
+                        collapse-after: 4
+                        feeds:
+                          - url: https://www.hashicorp.com/blog/feed.xml
+
+                      - type: rss
+                        title: Docker Blog
+                        style: detailed-list
+                        limit: 6
+                        collapse-after: 4
+                        feeds:
+                          - url: https://www.docker.com/blog/feed/
+
+              - name: Tech News
+                columns:
+                  - size: small
+                    widgets:
+                      - type: clock
+                        hour-format: 24h
+                        timezones:
+                          - timezone: Europe/London
+                            label: London
+
+                      - type: search
+                        search-engine: duckduckgo
+
+                      - type: bookmarks
+                        groups:
+                          - title: Tech Sites
+                            color: 200 60 50
+                            links:
+                              - title: Hacker News
+                                url: https://news.ycombinator.com
+                                icon: si:ycombinator
+                              - title: Lobsters
+                                url: https://lobste.rs
+                                icon: si:lobsters
+                              - title: Reddit r/selfhosted
+                                url: https://reddit.com/r/selfhosted
+                                icon: si:reddit
+                              - title: Reddit r/homelab
+                                url: https://reddit.com/r/homelab
+                                icon: si:reddit
+
+                  - size: full
+                    widgets:
+                      - type: hacker-news
+                        title: Hacker News
+                        limit: 15
+                        collapse-after: 8
+
+                  - size: full
+                    widgets:
+                      - type: lobsters
+                        title: Lobsters
+                        limit: 15
+                        collapse-after: 8
+
+                      - type: rss
+                        title: r/selfhosted
+                        style: detailed-list
+                        limit: 10
+                        collapse-after: 5
+                        feeds:
+                          - url: https://www.reddit.com/r/selfhosted/.rss
+
+              - name: Linux
+                columns:
+                  - size: small
+                    widgets:
+                      - type: clock
+                        hour-format: 24h
+                        timezones:
+                          - timezone: Europe/London
+                            label: London
+
+                      - type: search
+                        search-engine: duckduckgo
+
+                      - type: bookmarks
+                        groups:
+                          - title: Linux Resources
+                            color: 40 70 60
+                            links:
+                              - title: Arch Wiki
+                                url: https://wiki.archlinux.org
+                                icon: si:archlinux
+                              - title: NixOS Wiki
+                                url: https://nixos.wiki
+                                icon: si:nixos
+                              - title: Linux Kernel
+                                url: https://kernel.org
+                                icon: si:linux
+                              - title: DistroWatch
+                                url: https://distrowatch.com
+                                icon: si:linux
+
+                  - size: full
+                    widgets:
+                      - type: rss
+                        title: Phoronix
+                        style: detailed-list
+                        limit: 12
+                        collapse-after: 6
+                        feeds:
+                          - url: https://www.phoronix.com/rss.php
+
+                      - type: rss
+                        title: LWN.net
+                        style: detailed-list
+                        limit: 10
+                        collapse-after: 5
+                        feeds:
+                          - url: https://lwn.net/headlines/rss
+
+                  - size: full
+                    widgets:
+                      - type: rss
+                        title: OMG! Linux
+                        style: detailed-list
+                        limit: 8
+                        collapse-after: 5
+                        feeds:
+                          - url: https://www.omglinux.com/feed/
+
+                      - type: rss
+                        title: It's FOSS
+                        style: detailed-list
+                        limit: 8
+                        collapse-after: 5
+                        feeds:
+                          - url: https://itsfoss.com/feed/

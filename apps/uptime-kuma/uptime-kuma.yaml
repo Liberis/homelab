@@ -1,0 +1,46 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: uptime-kuma
+  namespace: uptime-kuma
+spec:
+  interval: 24h
+  url: https://helm.irsigler.cloud
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: uptime-kuma
+  namespace: uptime-kuma
+spec:
+  interval: 30m
+  timeout: 15m
+  chart:
+    spec:
+      chart: uptime-kuma
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: uptime-kuma
+        namespace: uptime-kuma
+  values:
+    image:
+      repository: louislam/uptime-kuma
+      tag: "1"
+
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: zfs-nfs
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    nodeSelector:
+      kubernetes.io/hostname: jarvis

@@ -1,0 +1,95 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: headlamp
+spec:
+  interval: 24h
+  url: https://bjw-s-labs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: headlamp
+  namespace: headlamp
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: headlamp
+  values:
+    # FIX: ServiceAccount must be pre-created with RBAC permissions
+    # Chart-created SA lacks cluster-wide read permissions needed for
+    # Headlamp to list resources across all namespaces
+    serviceAccount:
+      name: headlamp
+      create: false
+
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/headlamp-k8s/headlamp
+              tag: latest
+            args:
+              - "-in-cluster"
+              - "-plugins-dir=/headlamp/plugins"
+            env:
+              TZ: "Europe/London"
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 4466
+              readiness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 4466
+              startup:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 4466
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                cpu: 500m
+                memory: 256Mi
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+
+    service:
+      main:
+        controller: main
+        type: ClusterIP
+        ports:
+          http:
+            port: 4466
+
+    persistence:
+      plugins:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: zfs-nfs
+        globalMounts:
+          - path: /headlamp/plugins

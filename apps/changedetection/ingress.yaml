@@ -1,0 +1,26 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: changedetection
+  namespace: changedetection
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    # traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forward-auth@kubernetescrd  # disabled
+spec:
+  tls:
+    - hosts:
+        - changedetection.liberispat.com
+      secretName: liberispat-wildcard-tls
+  rules:
+    - host: changedetection.liberispat.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: changedetection
+                port:
+                  number: 5000
