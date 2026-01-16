@@ -1,0 +1,177 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  interval: 24h
+  url: https://charts.goauthentik.io
+---
+# PostgreSQL Cluster for Authentik
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: authentik-postgres
+  namespace: authentik
+spec:
+  instances: 1
+  primaryUpdateStrategy: unsupervised
+
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+
+  storage:
+    size: 5Gi
+    storageClass: zfs-nfs-db
+
+  postgresql:
+    parameters:
+      shared_buffers: "128MB"
+      max_connections: "100"
+
+  bootstrap:
+    initdb:
+      database: authentik
+      owner: authentik
+      secret:
+        name: authentik-postgres-credentials
+
+  affinity:
+    nodeSelector:
+      kubernetes.io/hostname: jarvis
+---
+# Authentik application
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  interval: 30m
+  timeout: 15m
+  chart:
+    spec:
+      chart: authentik
+      version: "2025.*"
+      sourceRef:
+        kind: HelmRepository
+        name: authentik
+        namespace: authentik
+  # Wait for PostgreSQL to be ready
+  dependsOn:
+    - name: external-secrets
+      namespace: external-secrets
+  values:
+    global:
+      env:
+        - name: AUTHENTIK_POSTGRESQL__HOST
+          value: authentik-postgres-rw
+        - name: AUTHENTIK_POSTGRESQL__NAME
+          value: authentik
+        - name: AUTHENTIK_POSTGRESQL__USER
+          value: authentik
+        - name: AUTHENTIK_REDIS__HOST
+          value: authentik-valkey
+        - name: AUTHENTIK_HOST
+          value: https://auth.liberispat.com
+        - name: AUTHENTIK_HOST_BROWSER
+          value: https://auth.liberispat.com
+      envFrom:
+        - secretRef:
+            name: authentik-secrets
+
+    server:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+
+    worker:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+
+    # Disable embedded Redis (using external Valkey)
+    redis:
+      enabled: false
+
+    # Disable embedded PostgreSQL (using CNPG)
+    postgresql:
+      enabled: false
+
+    # Mount blueprints from ConfigMap
+    blueprints:
+      configMaps:
+        - authentik-blueprints
+---
+# Valkey (Redis replacement) for Authentik
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentik-valkey
+  namespace: authentik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentik-valkey
+  template:
+    metadata:
+      labels:
+        app: authentik-valkey
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+      containers:
+        - name: valkey
+          image: valkey/valkey:8-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: authentik-valkey-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentik-valkey
+  namespace: authentik
+spec:
+  selector:
+    app: authentik-valkey
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: authentik-valkey-data
+  namespace: authentik
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zfs-nfs
+  resources:
+    requests:
+      storage: 1Gi

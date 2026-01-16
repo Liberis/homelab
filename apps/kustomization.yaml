@@ -1,0 +1,47 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - base
+  - monitoring
+  - adguard
+  - unbound
+  # Identity provider - disabled for now
+  # - authentik
+  - navidrome
+  - audiobookshelf
+  - jellyfin
+  - qbittorrent
+  # *arr stack - media automation
+  - prowlarr
+  - sonarr
+  - radarr
+  - lidarr
+  - lazylibrarian
+  - bazarr
+  - actual-budget
+  # Backups
+  - zerobyte
+  - glance
+  # Productivity apps
+  - vikunja
+  - mealie
+  - paperless-ngx
+  - vaultwarden
+  - immich
+  # File sharing
+  - filebrowser
+  - samba
+  # Monitoring
+  - uptime-kuma
+  - changedetection
+  # Container registry
+  - harbor
+  # GitLab
+  - gitlab
+  # Home automation
+  - homeassistant
+  # Network monitoring
+  - mktxp
+  # Kubernetes dashboard
+  - headlamp
