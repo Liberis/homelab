@@ -428,6 +428,29 @@ data:
           policy_engine_mode: any
           open_in_new_tab: true
 
+      # Zerobyte (Backup Manager)
+      - model: authentik_providers_proxy.proxyprovider
+        id: zerobyte-provider
+        identifiers:
+          name: Zerobyte Proxy
+        attrs:
+          name: Zerobyte Proxy
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          mode: forward_single
+          external_host: https://zerobyte.liberispat.com
+      - model: authentik_core.application
+        id: zerobyte-app
+        identifiers:
+          slug: zerobyte
+        attrs:
+          name: Zerobyte
+          slug: zerobyte
+          provider: !KeyOf zerobyte-provider
+          meta_launch_url: https://zerobyte.liberispat.com
+          policy_engine_mode: any
+          open_in_new_tab: true
+
       # Create Forward Auth Outpost with all proxy providers
       - model: authentik_outposts.outpost
         id: forward-auth-outpost
@@ -444,6 +467,7 @@ data:
             - !KeyOf changedetection-provider
             - !KeyOf jellyfin-provider
             - !KeyOf headlamp-provider
+            - !KeyOf zerobyte-provider
           config:
             authentik_host: https://auth.liberispat.com/
             log_level: info
