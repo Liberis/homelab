@@ -451,6 +451,8 @@ data:
             kubernetes_replicas: 1
             kubernetes_namespace: authentik
             kubernetes_service_type: ClusterIP
+            kubernetes_disabled_components:
+              - ingress
           service_connection: !Find [authentik_outposts.kubernetesserviceconnection, [name, Local Kubernetes Cluster]]
 
   # Harbor - OIDC Provider
