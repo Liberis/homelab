@@ -56,11 +56,47 @@ spec:
                 sidekiq['max_concurrency'] = 10
                 postgresql['shared_buffers'] = "256MB"
                 prometheus_monitoring['enable'] = false
+
+                # OIDC Configuration (Authentik)
+                gitlab_rails['omniauth_enabled'] = true
+                gitlab_rails['omniauth_allow_single_sign_on'] = ['openid_connect']
+                gitlab_rails['omniauth_sync_email_from_provider'] = 'openid_connect'
+                gitlab_rails['omniauth_sync_profile_from_provider'] = ['openid_connect']
+                gitlab_rails['omniauth_sync_profile_attributes'] = ['name', 'email']
+                gitlab_rails['omniauth_block_auto_created_users'] = false
+                gitlab_rails['omniauth_auto_link_user'] = ['openid_connect']
+                gitlab_rails['omniauth_providers'] = [
+                  {
+                    name: "openid_connect",
+                    label: "Authentik",
+                    args: {
+                      name: "openid_connect",
+                      scope: ["openid", "profile", "email"],
+                      response_type: "code",
+                      issuer: "https://auth.liberispat.com/application/o/gitlab/",
+                      discovery: true,
+                      client_auth_method: "query",
+                      uid_field: "sub",
+                      send_scope_to_token_endpoint: "false",
+                      pkce: true,
+                      client_options: {
+                        identifier: "gitlab",
+                        secret: ENV['GITLAB_OIDC_CLIENT_SECRET'],
+                        redirect_uri: "https://gitlab.liberispat.com/users/auth/openid_connect/callback"
+                      }
+                    }
+                  }
+                ]
             - name: GITLAB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: gitlab-credentials
                   key: root_password
+            - name: GITLAB_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-oidc-credentials
+                  key: client_secret
           resources:
             requests:
               cpu: 2000m

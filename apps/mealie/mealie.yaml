@@ -48,6 +48,17 @@ spec:
                   secretKeyRef:
                     name: mealie-credentials
                     key: admin_password
+              # OIDC Configuration (Authentik)
+              OIDC_AUTH_ENABLED: "true"
+              OIDC_SIGNUP_ENABLED: "true"
+              OIDC_CONFIGURATION_URL: "https://auth.liberispat.com/application/o/mealie/.well-known/openid-configuration"
+              OIDC_CLIENT_ID: "mealie"
+              OIDC_AUTO_REDIRECT: "false"
+              OIDC_ADMIN_GROUP: "admins"
+              OIDC_USER_GROUP: "users"
+            envFrom:
+              - secretRef:
+                  name: mealie-oidc-credentials
             resources:
               requests:
                 cpu: 100m

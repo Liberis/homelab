@@ -160,9 +160,12 @@ spec:
                   secretKeyRef:
                     name: vikunja-credentials
                     key: jwt_secret
-              # OIDC: Vikunja 0.24.x doesn't support OIDC via env vars
-              # Requires config file mount - see https://vikunja.io/docs/openid/
-              VIKUNJA_AUTH_OPENID_ENABLED: "false"
+              # OIDC Configuration (Authentik)
+              VIKUNJA_AUTH_OPENID_ENABLED: "true"
+              VIKUNJA_AUTH_OPENID_PROVIDERS: '[{"name":"Authentik","authurl":"https://auth.liberispat.com/application/o/vikunja/","logouturl":"https://auth.liberispat.com/application/o/vikunja/end-session/","clientid":"vikunja","scope":"openid profile email"}]'
+            envFrom:
+              - secretRef:
+                  name: vikunja-oidc-credentials
             probes:
               liveness:
                 enabled: true

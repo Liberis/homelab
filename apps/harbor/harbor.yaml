@@ -101,3 +101,22 @@ spec:
     registry:
       nodeSelector:
         kubernetes.io/hostname: jarvis
+
+    # OIDC Configuration (Authentik)
+    core:
+      configOverwriteJson: |
+        {
+          "auth_mode": "oidc_auth",
+          "oidc_name": "Authentik",
+          "oidc_endpoint": "https://auth.liberispat.com/application/o/harbor/",
+          "oidc_client_id": "harbor",
+          "oidc_groups_claim": "groups",
+          "oidc_admin_group": "admins",
+          "oidc_scope": "openid,profile,email",
+          "oidc_user_claim": "preferred_username",
+          "oidc_verify_cert": true,
+          "oidc_auto_onboard": true
+        }
+      # OIDC client secret from external secret
+      existingSecret: harbor-oidc-credentials
+      secretKey: OIDC_CLIENT_SECRET

@@ -6,8 +6,8 @@ resources:
   - monitoring
   - adguard
   - unbound
-  # Identity provider - disabled for now
-  # - authentik
+  # Identity provider
+  - authentik
   - navidrome
   - audiobookshelf
   - jellyfin

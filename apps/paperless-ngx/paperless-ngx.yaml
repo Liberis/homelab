@@ -54,9 +54,28 @@ spec:
               PAPERLESS_DBENGINE: sqlite
               PAPERLESS_OCR_LANGUAGE: eng
               PAPERLESS_TIME_ZONE: UTC
+              # OIDC Configuration (Authentik)
+              PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
+              PAPERLESS_SOCIALACCOUNT_PROVIDERS: |
+                {
+                  "openid_connect": {
+                    "APPS": [{
+                      "provider_id": "authentik",
+                      "name": "Authentik",
+                      "client_id": "paperless",
+                      "secret": "${PAPERLESS_OIDC_CLIENT_SECRET}",
+                      "settings": {
+                        "server_url": "https://auth.liberispat.com/application/o/paperless/"
+                      }
+                    }],
+                    "OAUTH_PKCE_ENABLED": "True"
+                  }
+                }
             envFrom:
               - secretRef:
                   name: paperless-credentials
+              - secretRef:
+                  name: paperless-oidc-credentials
             resources:
               requests:
                 cpu: 200m

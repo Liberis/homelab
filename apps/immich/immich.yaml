@@ -90,6 +90,8 @@ spec:
               envFrom:
                 - secretRef:
                     name: immich-db-env
+                - secretRef:
+                    name: immich-oidc-credentials
               resources:
                 requests:
                   cpu: 100m
@@ -97,6 +99,42 @@ spec:
                 limits:
                   cpu: 2000m
                   memory: 2Gi
+
+    # Environment variables for OIDC (Immich reads these at startup)
+    env:
+      IMMICH_CONFIG_FILE: /config/immich-config.json
+
+    # Mount OIDC configuration
+    configMaps:
+      config:
+        enabled: true
+        data:
+          immich-config.json: |
+            {
+              "oauth": {
+                "enabled": true,
+                "issuerUrl": "https://auth.liberispat.com/application/o/immich/",
+                "clientId": "immich",
+                "clientSecret": "",
+                "scope": "openid email profile",
+                "signingAlgorithm": "RS256",
+                "storageLabelClaim": "preferred_username",
+                "storageQuotaClaim": "immich_quota",
+                "defaultStorageQuota": 0,
+                "buttonText": "Login with Authentik",
+                "autoRegister": true,
+                "autoLaunch": false,
+                "mobileOverrideEnabled": false,
+                "mobileRedirectUri": ""
+              }
+            }
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: immich-config
+        globalMounts:
+          - path: /config
 
     # Valkey (Redis replacement)
     valkey:

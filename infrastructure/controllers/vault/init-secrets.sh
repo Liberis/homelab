@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # Vault Secret Initialization Script
 # Run this ONCE after Vault is deployed and running
@@ -81,46 +80,45 @@ echo ""
 #############################################
 
 # MikroTik (mktxp)
-echo -e "${YELLOW}[1/12] Checking mktxp secrets...${NC}"
+# ExternalSecret expects: router_host, switch_host, username, password
+echo -e "${YELLOW}[1/15] Checking mktxp secrets...${NC}"
 create_secret_if_missing mktxp \
     router_host="192.168.88.1" \
-    router_username="mktxp" \
-    router_password="CHANGE_ME_MIKROTIK_PASSWORD" \
     switch_host="192.168.88.2" \
-    switch_username="mktxp" \
-    switch_password="CHANGE_ME_SWITCH_PASSWORD"
+    username="mktxp" \
+    password="$(openssl rand -hex 32)"
 
 # Samba
-echo -e "${YELLOW}[2/12] Checking samba secrets...${NC}"
+echo -e "${YELLOW}[2/15] Checking samba secrets...${NC}"
 create_secret_if_missing samba \
     smb_user="music" \
-    smb_password="CHANGE_ME_SAMBA_PASSWORD"
+    smb_password="$(openssl rand -hex 64)"
 
 # Vaultwarden
-echo -e "${YELLOW}[3/12] Checking vaultwarden secrets...${NC}"
+echo -e "${YELLOW}[3/15] Checking vaultwarden secrets...${NC}"
 create_secret_if_missing vaultwarden \
-    admin_token="CHANGE_ME_VAULTWARDEN_TOKEN"
+    admin_token="$(openssl rand -hex 64)"
 
 # Paperless-ngx
-echo -e "${YELLOW}[4/12] Checking paperless secrets...${NC}"
+echo -e "${YELLOW}[4/15] Checking paperless secrets...${NC}"
 if ! secret_exists paperless; then
     PAPERLESS_SECRET_KEY=$(openssl rand -hex 32)
     create_secret_if_missing paperless \
         admin_user="admin" \
-        admin_password="CHANGE_ME_PAPERLESS_PASSWORD" \
+        admin_password="$(openssl rand -hex 64)" \
         secret_key="$PAPERLESS_SECRET_KEY"
 else
     echo -e "${GREEN}  Secret 'paperless' already exists, skipping${NC}"
 fi
 
 # Nextcloud
-echo -e "${YELLOW}[5/12] Checking nextcloud secrets...${NC}"
+echo -e "${YELLOW}[5/15] Checking nextcloud secrets...${NC}"
 create_secret_if_missing nextcloud \
     admin_user="admin" \
-    admin_password="CHANGE_ME_NEXTCLOUD_PASSWORD"
+    admin_password="$(openssl rand -hex 64)"
 
 # Immich
-echo -e "${YELLOW}[6/12] Checking immich secrets...${NC}"
+echo -e "${YELLOW}[6/15] Checking immich secrets...${NC}"
 if ! secret_exists immich; then
     IMMICH_DB_PASSWORD=$(openssl rand -hex 16)
     create_secret_if_missing immich \
@@ -131,34 +129,31 @@ else
 fi
 
 # Grafana
-echo -e "${YELLOW}[7/12] Checking grafana secrets...${NC}"
+echo -e "${YELLOW}[7/15] Checking grafana secrets...${NC}"
 create_secret_if_missing grafana \
     admin_user="admin" \
-    admin_password="CHANGE_ME_GRAFANA_PASSWORD"
+    admin_password="$(openssl rand -hex 64)"
 
 # Harbor
-echo -e "${YELLOW}[8/12] Checking harbor secrets...${NC}"
+# NOTE: secret_key MUST be exactly 16 characters (Harbor requirement)
+echo -e "${YELLOW}[8/15] Checking harbor secrets...${NC}"
 if ! secret_exists harbor; then
-    HARBOR_SECRET_KEY=$(openssl rand -hex 32)
+    HARBOR_SECRET_KEY=$(openssl rand -hex 8)  # 8 hex bytes = 16 chars
     create_secret_if_missing harbor \
-        admin_password="CHANGE_ME_HARBOR_PASSWORD" \
+        admin_password="$(openssl rand -hex 32)" \
         secret_key="$HARBOR_SECRET_KEY"
 else
     echo -e "${GREEN}  Secret 'harbor' already exists, skipping${NC}"
 fi
 
 # Mealie
-echo -e "${YELLOW}[9/12] Checking mealie secrets...${NC}"
+echo -e "${YELLOW}[9/15] Checking mealie secrets...${NC}"
 create_secret_if_missing mealie \
-    smtp_host="" \
-    smtp_port="" \
-    smtp_user="" \
-    smtp_password="" \
-    smtp_from="" \
-    openai_api_key=""
+    admin_email="admin@example.com" \
+    admin_password="$(openssl rand -hex 32)"
 
 # Democratic-CSI SSH key
-echo -e "${YELLOW}[10/12] Checking democratic-csi SSH key...${NC}"
+echo -e "${YELLOW}[10/15] Checking democratic-csi SSH key...${NC}"
 SSH_KEY_FILE="/tmp/democratic-csi"
 if ! secret_exists democratic-csi; then
     if [ -f "$SSH_KEY_FILE" ]; then
@@ -175,12 +170,12 @@ else
 fi
 
 # Home Assistant
-echo -e "${YELLOW}[11/12] Checking homeassistant secrets...${NC}"
+echo -e "${YELLOW}[11/15] Checking homeassistant secrets...${NC}"
 create_secret_if_missing homeassistant \
     placeholder="no-secrets-needed"
 
 # GitLab
-echo -e "${YELLOW}[12/12] Checking gitlab secrets...${NC}"
+echo -e "${YELLOW}[12/15] Checking gitlab secrets...${NC}"
 if ! secret_exists gitlab; then
     # Generate all required secrets
     GITLAB_DB_PASSWORD=$(openssl rand -hex 16)
@@ -216,10 +211,52 @@ else
     echo -e "${GREEN}  Secret 'gitlab' already exists, skipping${NC}"
 fi
 
+# Cloudflare API Token (for cert-manager DNS challenges)
+echo -e "${YELLOW}[13/15] Checking cloudflare secrets...${NC}"
+create_secret_if_missing cloudflare \
+    api-token="CHANGE_ME_CLOUDFLARE_API_TOKEN"
+
+# Vikunja
+echo -e "${YELLOW}[14/15] Checking vikunja secrets...${NC}"
+if ! secret_exists vikunja; then
+    VIKUNJA_DB_PASSWORD=$(openssl rand -hex 16)
+    VIKUNJA_JWT_SECRET=$(openssl rand -hex 32)
+    VIKUNJA_TYPESENSE_API_KEY=$(openssl rand -hex 32)
+    $VAULT_CMD kv put secret/vikunja \
+        db_username="vikunja" \
+        db_password="$VIKUNJA_DB_PASSWORD" \
+        jwt_secret="$VIKUNJA_JWT_SECRET" \
+        typesense_api_key="$VIKUNJA_TYPESENSE_API_KEY"
+    echo -e "${GREEN}  Created secret 'vikunja'${NC}"
+else
+    echo -e "${GREEN}  Secret 'vikunja' already exists, skipping${NC}"
+fi
+
+# Authentik (if used)
+echo -e "${YELLOW}[15/15] Checking authentik secrets...${NC}"
+if ! secret_exists authentik; then
+    $VAULT_CMD kv put secret/authentik \
+        db_username="authentik" \
+        db_password="$(openssl rand -hex 32)" \
+        secret_key="$(openssl rand -hex 32)" \
+        admin_password="$(openssl rand -hex 16)" \
+        admin_token="$(openssl rand -hex 32)" \
+        grafana_client_secret="$(openssl rand -hex 32)" \
+        immich_client_secret="$(openssl rand -hex 32)" \
+        gitlab_client_secret="$(openssl rand -hex 32)" \
+        mealie_client_secret="$(openssl rand -hex 32)" \
+        vikunja_client_secret="$(openssl rand -hex 32)" \
+        paperless_client_secret="$(openssl rand -hex 32)" \
+        harbor_client_secret="$(openssl rand -hex 32)"
+    echo -e "${GREEN}  Created secret 'authentik'${NC}"
+else
+    echo -e "${GREEN}  Secret 'authentik' already exists, skipping${NC}"
+fi
+
 echo ""
 echo -e "${GREEN}=== Secrets initialized! ===${NC}"
 echo ""
-echo -e "${YELLOW}IMPORTANT: Edit this script and replace all CHANGE_ME_* values with real passwords!${NC}"
+echo -e "${YELLOW}IMPORTANT: Edit this script and replace all $(openssl rand -hex 64)"
 echo ""
 echo "To update a secret later:"
 echo "  vault kv put secret/<app> key=value"
