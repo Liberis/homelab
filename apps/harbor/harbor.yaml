@@ -95,15 +95,7 @@ spec:
     core:
       nodeSelector:
         kubernetes.io/hostname: jarvis
-    jobservice:
-      nodeSelector:
-        kubernetes.io/hostname: jarvis
-    registry:
-      nodeSelector:
-        kubernetes.io/hostname: jarvis
-
-    # OIDC Configuration (Authentik)
-    core:
+      # OIDC Configuration (Authentik)
       configOverwriteJson: |
         {
           "auth_mode": "oidc_auth",
@@ -117,6 +109,11 @@ spec:
           "oidc_verify_cert": true,
           "oidc_auto_onboard": true
         }
-      # OIDC client secret from external secret
       existingSecret: harbor-oidc-credentials
       secretKey: OIDC_CLIENT_SECRET
+    jobservice:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+    registry:
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
