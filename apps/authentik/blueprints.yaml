@@ -20,38 +20,6 @@ data:
           local: true
           verify_ssl: true
 
-  # Embedded Outpost for Forward Auth
-  outpost.yaml: |
-    version: 1
-    metadata:
-      name: Embedded Outpost
-    entries:
-      - model: authentik_outposts.outpost
-        id: embedded-outpost
-        identifiers:
-          name: authentik Embedded Outpost
-        attrs:
-          name: Embedded Outpost
-          type: proxy
-          config:
-            authentik_host: https://auth.liberispat.com/
-            docker_network: null
-            container_image: null
-            docker_map_ports: true
-            docker_labels: null
-            log_level: info
-            object_naming_template: ak-outpost-%(name)s
-            kubernetes_replicas: 1
-            kubernetes_namespace: authentik
-            kubernetes_ingress_annotations: {}
-            kubernetes_ingress_secret_name: liberispat-wildcard-tls
-            kubernetes_service_type: ClusterIP
-            kubernetes_disabled_components: []
-            kubernetes_json_patches: null
-            refresh_interval: minutes=5
-          managed: null
-          service_connection: !Find [authentik_outposts.kubernetesserviceconnection, [name, Local Kubernetes Cluster]]
-
   # Grafana - OIDC Provider
   grafana.yaml: |
     version: 1
@@ -459,6 +427,31 @@ data:
           meta_launch_url: https://k8s.liberispat.com
           policy_engine_mode: any
           open_in_new_tab: true
+
+      # Update Embedded Outpost with all proxy providers
+      - model: authentik_outposts.outpost
+        id: embedded-outpost
+        identifiers:
+          name: authentik Embedded Outpost
+        attrs:
+          name: authentik Embedded Outpost
+          type: proxy
+          providers:
+            - !KeyOf filebrowser-provider
+            - !KeyOf glance-provider
+            - !KeyOf uptime-kuma-provider
+            - !KeyOf actual-budget-provider
+            - !KeyOf changedetection-provider
+            - !KeyOf jellyfin-provider
+            - !KeyOf headlamp-provider
+          config:
+            authentik_host: https://auth.liberispat.com/
+            log_level: info
+            object_naming_template: ak-outpost-%(name)s
+            kubernetes_replicas: 1
+            kubernetes_namespace: authentik
+            kubernetes_service_type: ClusterIP
+          service_connection: !Find [authentik_outposts.kubernetesserviceconnection, [name, Local Kubernetes Cluster]]
 
   # Harbor - OIDC Provider
   harbor.yaml: |
