@@ -428,13 +428,13 @@ data:
           policy_engine_mode: any
           open_in_new_tab: true
 
-      # Update Embedded Outpost with all proxy providers
+      # Create Forward Auth Outpost with all proxy providers
       - model: authentik_outposts.outpost
-        id: embedded-outpost
+        id: forward-auth-outpost
         identifiers:
-          name: authentik Embedded Outpost
+          name: Forward Auth Outpost
         attrs:
-          name: authentik Embedded Outpost
+          name: Forward Auth Outpost
           type: proxy
           providers:
             - !KeyOf filebrowser-provider
