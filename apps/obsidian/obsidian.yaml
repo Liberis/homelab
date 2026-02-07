@@ -3,7 +3,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: bjw-s
-  namespace: ollama
+  namespace: obsidian
 spec:
   interval: 24h
   url: https://bjw-s-labs.github.io/helm-charts
@@ -11,8 +11,8 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: ollama
-  namespace: ollama
+  name: obsidian
+  namespace: obsidian
 spec:
   interval: 30m
   driftDetection:
@@ -24,50 +24,55 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: bjw-s
-        namespace: ollama
+        namespace: obsidian
   values:
     controllers:
       main:
         containers:
           main:
             image:
-              repository: ollama/ollama
+              repository: ghcr.io/sytone/obsidian-remote
               tag: latest
             env:
               TZ: "Europe/London"
-              OLLAMA_HOST: "0.0.0.0"
-            resources:
-              limits:
-                nvidia.com/gpu: 1
+              PUID: "1000"
+              PGID: "1000"
             probes:
               liveness:
                 enabled: true
                 spec:
                   httpGet:
                     path: /
-                    port: 11434
-                  initialDelaySeconds: 60
+                    port: 8080
+                  initialDelaySeconds: 30
                   periodSeconds: 30
               readiness:
                 enabled: true
                 spec:
                   httpGet:
                     path: /
-                    port: 11434
-                  initialDelaySeconds: 30
+                    port: 8080
+                  initialDelaySeconds: 10
                   periodSeconds: 10
               startup:
                 enabled: true
                 spec:
                   httpGet:
                     path: /
-                    port: 11434
+                    port: 8080
                   failureThreshold: 30
                   periodSeconds: 10
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
 
     defaultPodOptions:
       nodeSelector:
-        kubernetes.io/hostname: nixos
+        kubernetes.io/hostname: jarvis
 
     service:
       main:
@@ -75,14 +80,22 @@ spec:
         type: ClusterIP
         ports:
           http:
-            port: 11434
+            port: 8080
 
     persistence:
-      data:
+      config:
         enabled: true
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
-        size: 100Gi
+        size: 5Gi
         storageClass: zfs-nfs
         globalMounts:
-          - path: /root/.ollama
+          - path: /config
+      vaults:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: zfs-nfs
+        globalMounts:
+          - path: /vaults

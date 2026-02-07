@@ -10,4 +10,4 @@ resources:
   - capacitor
   - snapshot-controller
   - cnpg
-  - generic-cdi-plugin
+  - nvidia-device-plugin

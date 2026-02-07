@@ -48,5 +48,8 @@ resources:
   # AI/LLM
   - ollama
   - openwebui
+  - exo
   # Automation
   - n8n
+  # Notes
+  - obsidian
