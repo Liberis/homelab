@@ -134,6 +134,12 @@ spec:
                           - title: ChangeDetection
                             url: https://changedetection.liberispat.com
                             icon: si:iconify
+                          - title: OpenWebUI
+                            url: https://chat.liberispat.com
+                            icon: si:openai
+                          - title: n8n
+                            url: https://n8n.liberispat.com
+                            icon: si:n8n
 
                   - size: full
                     widgets:
@@ -271,6 +277,21 @@ spec:
                               - title: FileBrowser
                                 url: https://files.liberispat.com
                                 icon: si:files
+                              - title: n8n
+                                url: https://n8n.liberispat.com
+                                icon: si:n8n
+
+                      - type: bookmarks
+                        groups:
+                          - title: AI
+                            color: 260 70 60
+                            links:
+                              - title: OpenWebUI
+                                url: https://chat.liberispat.com
+                                icon: si:openai
+                              - title: Ollama
+                                url: https://ollama.liberispat.com
+                                icon: si:ollama
 
               - name: DevOps
                 columns:
