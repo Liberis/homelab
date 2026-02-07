@@ -474,6 +474,52 @@ data:
           policy_engine_mode: any
           open_in_new_tab: true
 
+      # OpenWebUI (AI Chat Interface)
+      - model: authentik_providers_proxy.proxyprovider
+        id: openwebui-provider
+        identifiers:
+          name: OpenWebUI Proxy
+        attrs:
+          name: OpenWebUI Proxy
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          mode: forward_single
+          external_host: https://chat.liberispat.com
+      - model: authentik_core.application
+        id: openwebui-app
+        identifiers:
+          slug: openwebui
+        attrs:
+          name: OpenWebUI
+          slug: openwebui
+          provider: !KeyOf openwebui-provider
+          meta_launch_url: https://chat.liberispat.com
+          policy_engine_mode: any
+          open_in_new_tab: true
+
+      # n8n (Workflow Automation)
+      - model: authentik_providers_proxy.proxyprovider
+        id: n8n-provider
+        identifiers:
+          name: n8n Proxy
+        attrs:
+          name: n8n Proxy
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          mode: forward_single
+          external_host: https://n8n.liberispat.com
+      - model: authentik_core.application
+        id: n8n-app
+        identifiers:
+          slug: n8n
+        attrs:
+          name: n8n
+          slug: n8n
+          provider: !KeyOf n8n-provider
+          meta_launch_url: https://n8n.liberispat.com
+          policy_engine_mode: any
+          open_in_new_tab: true
+
       # Create Forward Auth Outpost with all proxy providers
       - model: authentik_outposts.outpost
         id: forward-auth-outpost
@@ -492,6 +538,8 @@ data:
             - !KeyOf headlamp-provider
             - !KeyOf zerobyte-provider
             - !KeyOf ollama-provider
+            - !KeyOf openwebui-provider
+            - !KeyOf n8n-provider
           config:
             authentik_host: https://auth.liberispat.com/
             log_level: info

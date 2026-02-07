@@ -47,3 +47,6 @@ resources:
   - headlamp
   # AI/LLM
   - ollama
+  - openwebui
+  # Automation
+  - n8n
