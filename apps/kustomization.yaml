@@ -45,3 +45,5 @@ resources:
   - mktxp
   # Kubernetes dashboard
   - headlamp
+  # AI/LLM
+  - ollama

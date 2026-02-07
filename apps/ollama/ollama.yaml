@@ -1,0 +1,86 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: ollama
+spec:
+  interval: 24h
+  url: https://bjw-s-labs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ollama
+  namespace: ollama
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: "3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: ollama
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ollama/ollama
+              tag: latest
+            env:
+              TZ: "Europe/London"
+              OLLAMA_HOST: "0.0.0.0"
+            resources:
+              limits:
+                nvidia.com/gpu-all: 1
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 11434
+                  initialDelaySeconds: 60
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 11434
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+              startup:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 11434
+                  failureThreshold: 30
+                  periodSeconds: 10
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: nixos
+
+    service:
+      main:
+        controller: main
+        type: ClusterIP
+        ports:
+          http:
+            port: 11434
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 100Gi
+        storageClass: zfs-nfs
+        globalMounts:
+          - path: /root/.ollama
