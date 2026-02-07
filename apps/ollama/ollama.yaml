@@ -38,7 +38,7 @@ spec:
               OLLAMA_HOST: "0.0.0.0"
             resources:
               limits:
-                nvidia.com/gpu: 1
+                nvidia.com/gpu-all: 1
             probes:
               liveness:
                 enabled: true
