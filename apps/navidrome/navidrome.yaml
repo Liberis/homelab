@@ -14,6 +14,8 @@ metadata:
   namespace: navidrome
 spec:
   interval: 30m
+  driftDetection:
+    mode: enabled
   chart:
     spec:
       chart: navidrome

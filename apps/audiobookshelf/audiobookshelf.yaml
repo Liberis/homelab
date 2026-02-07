@@ -15,6 +15,8 @@ metadata:
   namespace: audiobookshelf
 spec:
   interval: 30m
+  driftDetection:
+    mode: enabled
   chart:
     spec:
       chart: audiobookshelf
