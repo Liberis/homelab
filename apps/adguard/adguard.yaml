@@ -250,15 +250,10 @@ spec:
             answer: 192.168.10.11
           - domain: "liberispat.com"
             answer: 192.168.10.11
-          # Keep legacy jarvis.local for backward compatibility
-          - domain: "*.jarvis.local"
-            answer: 192.168.10.11
-          - domain: "jarvis.local"
-            answer: 192.168.10.11
           - domain: "jarvis"
             answer: 192.168.10.11
           - domain: "nixos"
-            answer: 192.168.88.12
+            answer: 192.168.10.12
       clients:
         runtime_sources:
           whois: true
