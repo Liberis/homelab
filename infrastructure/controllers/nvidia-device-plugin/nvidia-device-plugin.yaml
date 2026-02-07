@@ -15,6 +15,9 @@ data:
     version: v1
     flags:
       migStrategy: none
+    cdi:
+      enabled: true
+      default: true
     sharing:
       timeSlicing:
         renameByDefault: false
@@ -61,6 +64,8 @@ spec:
               mountPath: /var/lib/kubelet/device-plugins
             - name: config
               mountPath: /config
+            - name: cdi
+              mountPath: /var/run/cdi
       volumes:
         - name: device-plugin
           hostPath:
@@ -68,6 +73,9 @@ spec:
         - name: config
           configMap:
             name: nvidia-device-plugin-config
+        - name: cdi
+          hostPath:
+            path: /var/run/cdi
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
