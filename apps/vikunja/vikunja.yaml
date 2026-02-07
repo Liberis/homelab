@@ -161,8 +161,13 @@ spec:
                     name: vikunja-credentials
                     key: jwt_secret
               # OIDC Configuration (Authentik)
+              # Note: Vikunja requires indexed env vars, not JSON string for providers
               VIKUNJA_AUTH_OPENID_ENABLED: "true"
-              VIKUNJA_AUTH_OPENID_PROVIDERS: '[{"name":"Authentik","authurl":"https://auth.liberispat.com/application/o/vikunja/","logouturl":"https://auth.liberispat.com/application/o/vikunja/end-session/","clientid":"vikunja","scope":"openid profile email"}]'
+              VIKUNJA_AUTH_OPENID_PROVIDERS_0_NAME: "Authentik"
+              VIKUNJA_AUTH_OPENID_PROVIDERS_0_AUTHURL: "https://auth.liberispat.com/application/o/vikunja/"
+              VIKUNJA_AUTH_OPENID_PROVIDERS_0_LOGOUTURL: "https://auth.liberispat.com/application/o/vikunja/end-session/"
+              VIKUNJA_AUTH_OPENID_PROVIDERS_0_CLIENTID: "vikunja"
+              VIKUNJA_AUTH_OPENID_PROVIDERS_0_SCOPE: "openid profile email"
             envFrom:
               - secretRef:
                   name: vikunja-oidc-credentials

@@ -109,8 +109,13 @@ spec:
           "oidc_verify_cert": true,
           "oidc_auto_onboard": true
         }
-      existingSecret: harbor-oidc-credentials
-      secretKey: OIDC_CLIENT_SECRET
+      # OIDC client secret injected via environment variable
+      extraEnvVars:
+        - name: OIDC_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: harbor-oidc-credentials
+              key: OIDC_CLIENT_SECRET
     jobservice:
       nodeSelector:
         kubernetes.io/hostname: jarvis

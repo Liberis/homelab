@@ -132,7 +132,7 @@ spec:
       config:
         enabled: true
         type: configMap
-        name: immich-config
+        name: immich-server
         globalMounts:
           - path: /config
 
