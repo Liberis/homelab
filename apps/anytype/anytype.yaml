@@ -3,7 +3,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: bjw-s
-  namespace: obsidian
+  namespace: anytype
 spec:
   interval: 24h
   url: https://bjw-s-labs.github.io/helm-charts
@@ -11,8 +11,8 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: obsidian
-  namespace: obsidian
+  name: anytype
+  namespace: anytype
 spec:
   interval: 30m
   driftDetection:
@@ -24,62 +24,47 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: bjw-s
-        namespace: obsidian
+        namespace: anytype
   values:
     controllers:
       main:
         containers:
           main:
             image:
-              repository: couchdb
+              repository: ghcr.io/grishy/any-sync-bundle
               tag: latest
             env:
               TZ: "Europe/London"
-              COUCHDB_USER:
-                valueFrom:
-                  secretKeyRef:
-                    name: obsidian-credentials
-                    key: username
-              COUCHDB_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: obsidian-credentials
-                    key: password
+              ANY_SYNC_BUNDLE_INIT_EXTERNAL_ADDRS: "anytype.liberispat.com"
             probes:
               liveness:
                 enabled: true
                 spec:
-                  httpGet:
-                    path: /_up
-                    port: 5984
+                  tcpSocket:
+                    port: 33010
                   initialDelaySeconds: 30
                   periodSeconds: 30
               readiness:
                 enabled: true
                 spec:
-                  httpGet:
-                    path: /_up
-                    port: 5984
+                  tcpSocket:
+                    port: 33010
                   initialDelaySeconds: 10
                   periodSeconds: 10
               startup:
                 enabled: true
                 spec:
-                  httpGet:
-                    path: /_up
-                    port: 5984
+                  tcpSocket:
+                    port: 33010
                   failureThreshold: 30
                   periodSeconds: 10
             resources:
               requests:
                 cpu: 100m
-                memory: 256Mi
+                memory: 128Mi
               limits:
                 cpu: 500m
                 memory: 512Mi
-            securityContext:
-              runAsUser: 5984
-              runAsGroup: 5984
 
     defaultPodOptions:
       nodeSelector:
@@ -90,8 +75,12 @@ spec:
         controller: main
         type: ClusterIP
         ports:
-          http:
-            port: 5984
+          drpc:
+            port: 33010
+            protocol: TCP
+          quic:
+            port: 33020
+            protocol: UDP
 
     persistence:
       data:
@@ -101,12 +90,31 @@ spec:
         size: 10Gi
         storageClass: zfs-nfs
         globalMounts:
-          - path: /opt/couchdb/data
-      config:
-        enabled: true
-        type: persistentVolumeClaim
-        accessMode: ReadWriteOnce
-        size: 5Gi
-        storageClass: zfs-nfs
-        globalMounts:
-          - path: /opt/couchdb/etc/local.d
+          - path: /data
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: anytype-drpc
+  namespace: anytype
+spec:
+  entryPoints:
+    - anytype-drpc
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: anytype
+          port: 33010
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteUDP
+metadata:
+  name: anytype-quic
+  namespace: anytype
+spec:
+  entryPoints:
+    - anytype-quic
+  routes:
+    - services:
+        - name: anytype
+          port: 33020
