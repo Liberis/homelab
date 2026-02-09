@@ -145,9 +145,6 @@ spec:
                           - title: Obsidian
                             url: https://obsidian.liberispat.com
                             icon: si:obsidian
-                          - title: Exo
-                            url: https://exo.liberispat.com
-                            icon: si:nvidia
 
                   - size: full
                     widgets:
@@ -303,9 +300,6 @@ spec:
                               - title: Ollama
                                 url: https://ollama.liberispat.com
                                 icon: si:ollama
-                              - title: Exo
-                                url: https://exo.liberispat.com
-                                icon: si:nvidia
 
               - name: DevOps
                 columns:
