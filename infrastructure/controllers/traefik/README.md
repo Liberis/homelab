@@ -20,14 +20,12 @@ Traefik handles all external traffic routing for the homelab cluster.
 
 ## Entrypoints
 
-| Port  | Protocol | Name          | Target Service        |
-|-------|----------|---------------|-----------------------|
-| 80    | TCP      | web           | HTTP → HTTPS redirect |
-| 443   | TCP      | websecure     | HTTPS Ingress         |
-| 445   | TCP      | smb           | Samba                 |
-| 2222  | TCP      | gitlab-ssh    | GitLab SSH            |
-| 33010 | TCP      | anytype-drpc  | Anytype Sync (DRPC)   |
-| 33020 | UDP      | anytype-quic  | Anytype Sync (QUIC)   |
+| Port | Protocol | Name        | Target Service        |
+|------|----------|-------------|-----------------------|
+| 80   | TCP      | web         | HTTP → HTTPS redirect |
+| 443  | TCP      | websecure   | HTTPS Ingress         |
+| 445  | TCP      | smb         | Samba                 |
+| 2222 | TCP      | gitlab-ssh  | GitLab SSH            |
 
 ## Routing
 

@@ -81,22 +81,6 @@ spec:
         exposedPort: 2222
         protocol: TCP
 
-      # Anytype sync (DRPC)
-      anytype-drpc:
-        port: 33010
-        expose:
-          default: true
-        exposedPort: 33010
-        protocol: TCP
-
-      # Anytype sync (QUIC)
-      anytype-quic:
-        port: 33020
-        expose:
-          default: true
-        exposedPort: 33020
-        protocol: UDP
-
     # Service configuration - single LoadBalancer with dedicated IP
     service:
       enabled: true

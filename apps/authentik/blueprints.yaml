@@ -451,29 +451,6 @@ data:
           policy_engine_mode: any
           open_in_new_tab: true
 
-      # Ollama (AI/LLM)
-      - model: authentik_providers_proxy.proxyprovider
-        id: ollama-provider
-        identifiers:
-          name: Ollama Proxy
-        attrs:
-          name: Ollama Proxy
-          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
-          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
-          mode: forward_single
-          external_host: https://ollama.liberispat.com
-      - model: authentik_core.application
-        id: ollama-app
-        identifiers:
-          slug: ollama
-        attrs:
-          name: Ollama
-          slug: ollama
-          provider: !KeyOf ollama-provider
-          meta_launch_url: https://ollama.liberispat.com
-          policy_engine_mode: any
-          open_in_new_tab: true
-
       # OpenWebUI (AI Chat Interface)
       - model: authentik_providers_proxy.proxyprovider
         id: openwebui-provider
@@ -537,7 +514,6 @@ data:
             - !KeyOf jellyfin-provider
             - !KeyOf headlamp-provider
             - !KeyOf zerobyte-provider
-            - !KeyOf ollama-provider
             - !KeyOf openwebui-provider
             - !KeyOf n8n-provider
           config:

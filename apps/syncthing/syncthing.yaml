@@ -3,7 +3,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: bjw-s
-  namespace: anytype
+  namespace: syncthing
 spec:
   interval: 24h
   url: https://bjw-s-labs.github.io/helm-charts
@@ -11,8 +11,8 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: anytype
-  namespace: anytype
+  name: syncthing
+  namespace: syncthing
 spec:
   interval: 30m
   driftDetection:
@@ -24,43 +24,47 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: bjw-s
-        namespace: anytype
+        namespace: syncthing
   values:
     controllers:
       main:
         containers:
           main:
             image:
-              repository: ghcr.io/grishy/any-sync-bundle
+              repository: lscr.io/linuxserver/syncthing
               tag: latest
             env:
               TZ: "Europe/London"
-              ANY_SYNC_BUNDLE_INIT_EXTERNAL_ADDRS: "anytype.liberispat.com"
+              PUID: "1000"
+              PGID: "1000"
             probes:
               liveness:
                 enabled: true
                 spec:
-                  tcpSocket:
-                    port: 33010
+                  httpGet:
+                    path: /rest/noauth/health
+                    port: 8384
                   initialDelaySeconds: 30
                   periodSeconds: 30
               readiness:
                 enabled: true
                 spec:
-                  tcpSocket:
-                    port: 33010
+                  httpGet:
+                    path: /rest/noauth/health
+                    port: 8384
                   initialDelaySeconds: 10
                   periodSeconds: 10
               startup:
                 enabled: true
                 spec:
-                  tcpSocket:
-                    port: 33010
+                  httpGet:
+                    path: /rest/noauth/health
+                    port: 8384
                   failureThreshold: 30
                   periodSeconds: 10
             resources:
               requests:
-                cpu: 100m
+                cpu: 50m
                 memory: 128Mi
               limits:
                 cpu: 500m
@@ -75,46 +79,36 @@ spec:
         controller: main
         type: ClusterIP
         ports:
-          drpc:
-            port: 33010
+          http:
+            port: 8384
+      sync:
+        controller: main
+        type: ClusterIP
+        ports:
+          sync-tcp:
+            port: 22000
             protocol: TCP
-          quic:
-            port: 33020
+          sync-udp:
+            port: 22000
+            protocol: UDP
+          discovery:
+            port: 21027
             protocol: UDP
 
     persistence:
+      config:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: zfs-nfs
+        globalMounts:
+          - path: /config
       data:
         enabled: true
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
-        size: 10Gi
+        size: 50Gi
         storageClass: zfs-nfs
         globalMounts:
           - path: /data
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRouteTCP
-metadata:
-  name: anytype-drpc
-  namespace: anytype
-spec:
-  entryPoints:
-    - anytype-drpc
-  routes:
-    - match: HostSNI(`*`)
-      services:
-        - name: anytype
-          port: 33010
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRouteUDP
-metadata:
-  name: anytype-quic
-  namespace: anytype
-spec:
-  entryPoints:
-    - anytype-quic
-  routes:
-    - services:
-        - name: anytype
-          port: 33020

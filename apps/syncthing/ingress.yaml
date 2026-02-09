@@ -2,25 +2,25 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ollama
-  namespace: ollama
+  name: syncthing
+  namespace: syncthing
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik
-  tls:
-    - hosts:
-        - ollama.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
-    - host: ollama.liberispat.com
+    - host: syncthing.liberispat.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: ollama
+                name: syncthing
                 port:
-                  number: 11434
+                  number: 8384
+  tls:
+    - hosts:
+        - syncthing.liberispat.com
+      secretName: liberispat-wildcard-tls

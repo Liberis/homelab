@@ -50,5 +50,5 @@ resources:
   - openwebui
   # Automation
   - n8n
-  # Notes
-  - anytype
+  # File sync
+  - syncthing
