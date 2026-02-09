@@ -31,35 +31,43 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/sytone/obsidian-remote
+              repository: couchdb
               tag: latest
             env:
               TZ: "Europe/London"
-              PUID: "1000"
-              PGID: "1000"
+              COUCHDB_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-credentials
+                    key: username
+              COUCHDB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: obsidian-credentials
+                    key: password
             probes:
               liveness:
                 enabled: true
                 spec:
                   httpGet:
-                    path: /
-                    port: 8080
+                    path: /_up
+                    port: 5984
                   initialDelaySeconds: 30
                   periodSeconds: 30
               readiness:
                 enabled: true
                 spec:
                   httpGet:
-                    path: /
-                    port: 8080
+                    path: /_up
+                    port: 5984
                   initialDelaySeconds: 10
                   periodSeconds: 10
               startup:
                 enabled: true
                 spec:
                   httpGet:
-                    path: /
-                    port: 8080
+                    path: /_up
+                    port: 5984
                   failureThreshold: 30
                   periodSeconds: 10
             resources:
@@ -67,8 +75,11 @@ spec:
                 cpu: 100m
                 memory: 256Mi
               limits:
-                cpu: 1000m
-                memory: 1Gi
+                cpu: 500m
+                memory: 512Mi
+            securityContext:
+              runAsUser: 5984
+              runAsGroup: 5984
 
     defaultPodOptions:
       nodeSelector:
@@ -80,22 +91,22 @@ spec:
         type: ClusterIP
         ports:
           http:
-            port: 8080
+            port: 5984
 
     persistence:
-      config:
-        enabled: true
-        type: persistentVolumeClaim
-        accessMode: ReadWriteOnce
-        size: 5Gi
-        storageClass: zfs-nfs
-        globalMounts:
-          - path: /config
-      vaults:
+      data:
         enabled: true
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: zfs-nfs
         globalMounts:
-          - path: /vaults
+          - path: /opt/couchdb/data
+      config:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: zfs-nfs
+        globalMounts:
+          - path: /opt/couchdb/etc/local.d

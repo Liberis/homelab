@@ -520,29 +520,6 @@ data:
           policy_engine_mode: any
           open_in_new_tab: true
 
-      # Obsidian (Notes)
-      - model: authentik_providers_proxy.proxyprovider
-        id: obsidian-provider
-        identifiers:
-          name: Obsidian Proxy
-        attrs:
-          name: Obsidian Proxy
-          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
-          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
-          mode: forward_single
-          external_host: https://obsidian.liberispat.com
-      - model: authentik_core.application
-        id: obsidian-app
-        identifiers:
-          slug: obsidian
-        attrs:
-          name: Obsidian
-          slug: obsidian
-          provider: !KeyOf obsidian-provider
-          meta_launch_url: https://obsidian.liberispat.com
-          policy_engine_mode: any
-          open_in_new_tab: true
-
       # Create Forward Auth Outpost with all proxy providers
       - model: authentik_outposts.outpost
         id: forward-auth-outpost
@@ -563,7 +540,6 @@ data:
             - !KeyOf ollama-provider
             - !KeyOf openwebui-provider
             - !KeyOf n8n-provider
-            - !KeyOf obsidian-provider
           config:
             authentik_host: https://auth.liberispat.com/
             log_level: info

@@ -19,7 +19,7 @@ spec:
               service:
                 name: obsidian
                 port:
-                  number: 8080
+                  number: 5984
   tls:
     - hosts:
         - obsidian.liberispat.com

@@ -142,9 +142,6 @@ spec:
                           - title: n8n
                             url: https://n8n.liberispat.com
                             icon: si:n8n
-                          - title: Obsidian
-                            url: https://obsidian.liberispat.com
-                            icon: si:obsidian
 
                   - size: full
                     widgets:
@@ -285,9 +282,6 @@ spec:
                               - title: n8n
                                 url: https://n8n.liberispat.com
                                 icon: si:n8n
-                              - title: Obsidian
-                                url: https://obsidian.liberispat.com
-                                icon: si:obsidian
 
                       - type: bookmarks
                         groups:
