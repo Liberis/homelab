@@ -81,7 +81,7 @@ echo ""
 
 # MikroTik (mktxp)
 # ExternalSecret expects: router_host, switch_host, username, password
-echo -e "${YELLOW}[1/15] Checking mktxp secrets...${NC}"
+echo -e "${YELLOW}[1/16] Checking mktxp secrets...${NC}"
 create_secret_if_missing mktxp \
     router_host="192.168.88.1" \
     switch_host="192.168.88.2" \
@@ -89,18 +89,18 @@ create_secret_if_missing mktxp \
     password="$(openssl rand -hex 32)"
 
 # Samba
-echo -e "${YELLOW}[2/15] Checking samba secrets...${NC}"
+echo -e "${YELLOW}[2/16] Checking samba secrets...${NC}"
 create_secret_if_missing samba \
     smb_user="music" \
     smb_password="$(openssl rand -hex 64)"
 
 # Vaultwarden
-echo -e "${YELLOW}[3/15] Checking vaultwarden secrets...${NC}"
+echo -e "${YELLOW}[3/16] Checking vaultwarden secrets...${NC}"
 create_secret_if_missing vaultwarden \
     admin_token="$(openssl rand -hex 64)"
 
 # Paperless-ngx
-echo -e "${YELLOW}[4/15] Checking paperless secrets...${NC}"
+echo -e "${YELLOW}[4/16] Checking paperless secrets...${NC}"
 if ! secret_exists paperless; then
     PAPERLESS_SECRET_KEY=$(openssl rand -hex 32)
     create_secret_if_missing paperless \
@@ -112,13 +112,13 @@ else
 fi
 
 # Nextcloud
-echo -e "${YELLOW}[5/15] Checking nextcloud secrets...${NC}"
+echo -e "${YELLOW}[5/16] Checking nextcloud secrets...${NC}"
 create_secret_if_missing nextcloud \
     admin_user="admin" \
     admin_password="$(openssl rand -hex 64)"
 
 # Immich
-echo -e "${YELLOW}[6/15] Checking immich secrets...${NC}"
+echo -e "${YELLOW}[6/16] Checking immich secrets...${NC}"
 if ! secret_exists immich; then
     IMMICH_DB_PASSWORD=$(openssl rand -hex 16)
     create_secret_if_missing immich \
@@ -129,14 +129,14 @@ else
 fi
 
 # Grafana
-echo -e "${YELLOW}[7/15] Checking grafana secrets...${NC}"
+echo -e "${YELLOW}[7/16] Checking grafana secrets...${NC}"
 create_secret_if_missing grafana \
     admin_user="admin" \
     admin_password="$(openssl rand -hex 64)"
 
 # Harbor
 # NOTE: secret_key MUST be exactly 16 characters (Harbor requirement)
-echo -e "${YELLOW}[8/15] Checking harbor secrets...${NC}"
+echo -e "${YELLOW}[8/16] Checking harbor secrets...${NC}"
 if ! secret_exists harbor; then
     HARBOR_SECRET_KEY=$(openssl rand -hex 8)  # 8 hex bytes = 16 chars
     create_secret_if_missing harbor \
@@ -147,13 +147,13 @@ else
 fi
 
 # Mealie
-echo -e "${YELLOW}[9/15] Checking mealie secrets...${NC}"
+echo -e "${YELLOW}[9/16] Checking mealie secrets...${NC}"
 create_secret_if_missing mealie \
     admin_email="admin@example.com" \
     admin_password="$(openssl rand -hex 32)"
 
 # Democratic-CSI SSH key
-echo -e "${YELLOW}[10/15] Checking democratic-csi SSH key...${NC}"
+echo -e "${YELLOW}[10/16] Checking democratic-csi SSH key...${NC}"
 SSH_KEY_FILE="/tmp/democratic-csi"
 if ! secret_exists democratic-csi; then
     if [ -f "$SSH_KEY_FILE" ]; then
@@ -170,12 +170,12 @@ else
 fi
 
 # Home Assistant
-echo -e "${YELLOW}[11/15] Checking homeassistant secrets...${NC}"
+echo -e "${YELLOW}[11/16] Checking homeassistant secrets...${NC}"
 create_secret_if_missing homeassistant \
     placeholder="no-secrets-needed"
 
 # GitLab
-echo -e "${YELLOW}[12/15] Checking gitlab secrets...${NC}"
+echo -e "${YELLOW}[12/16] Checking gitlab secrets...${NC}"
 if ! secret_exists gitlab; then
     # Generate all required secrets
     GITLAB_DB_PASSWORD=$(openssl rand -hex 16)
@@ -212,12 +212,12 @@ else
 fi
 
 # Cloudflare API Token (for cert-manager DNS challenges)
-echo -e "${YELLOW}[13/15] Checking cloudflare secrets...${NC}"
+echo -e "${YELLOW}[13/16] Checking cloudflare secrets...${NC}"
 create_secret_if_missing cloudflare \
     api-token="CHANGE_ME_CLOUDFLARE_API_TOKEN"
 
 # Vikunja
-echo -e "${YELLOW}[14/15] Checking vikunja secrets...${NC}"
+echo -e "${YELLOW}[14/16] Checking vikunja secrets...${NC}"
 if ! secret_exists vikunja; then
     VIKUNJA_DB_PASSWORD=$(openssl rand -hex 16)
     VIKUNJA_JWT_SECRET=$(openssl rand -hex 32)
@@ -233,7 +233,7 @@ else
 fi
 
 # Authentik (if used)
-echo -e "${YELLOW}[15/15] Checking authentik secrets...${NC}"
+echo -e "${YELLOW}[15/16] Checking authentik secrets...${NC}"
 if ! secret_exists authentik; then
     $VAULT_CMD kv put secret/authentik \
         db_username="authentik" \
@@ -252,6 +252,12 @@ if ! secret_exists authentik; then
 else
     echo -e "${GREEN}  Secret 'authentik' already exists, skipping${NC}"
 fi
+
+# Obsidian (CouchDB for LiveSync)
+echo -e "${YELLOW}[16/16] Checking obsidian secrets...${NC}"
+create_secret_if_missing obsidian \
+    username="admin" \
+    password="$(openssl rand -hex 32)"
 
 echo ""
 echo -e "${GREEN}=== Secrets initialized! ===${NC}"
