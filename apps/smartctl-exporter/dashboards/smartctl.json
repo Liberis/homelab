@@ -78,8 +78,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "smartctl_device_smart_healthy",
-          "legendFormat": "{{device}} - {{model_name}}",
+          "expr": "smartctl_device_smart_status",
+          "legendFormat": "{{device}}",
           "refId": "A"
         }
       ],
@@ -144,8 +144,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "smartctl_device_temperature",
-          "legendFormat": "{{device}} - {{model_name}}",
+          "expr": "smartctl_device_temperature{temperature_type=\"current\"}",
+          "legendFormat": "{{device}}",
           "refId": "A"
         }
       ],
@@ -172,7 +172,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "h"
         },
         "overrides": []
       },
@@ -203,7 +203,7 @@
             "uid": "prometheus"
           },
           "expr": "smartctl_device_power_on_seconds / 3600",
-          "legendFormat": "{{device}} - {{model_name}}",
+          "legendFormat": "{{device}}",
           "refId": "A"
         }
       ],
@@ -268,7 +268,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "smartctl_device_reallocated_sector_ct",
+          "expr": "smartctl_device_attribute{attribute_name=\"Reallocated_Sector_Ct\",attribute_value_type=\"raw\"}",
           "legendFormat": "{{device}}",
           "refId": "A"
         }
@@ -334,7 +334,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "smartctl_device_current_pending_sector",
+          "expr": "smartctl_device_attribute{attribute_name=\"Current_Pending_Sector\",attribute_value_type=\"raw\"}",
           "legendFormat": "{{device}}",
           "refId": "A"
         }
@@ -400,7 +400,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "smartctl_device_offline_uncorrectable",
+          "expr": "smartctl_device_attribute{attribute_name=\"Offline_Uncorrectable\",attribute_value_type=\"raw\"}",
           "legendFormat": "{{device}}",
           "refId": "A"
         }
@@ -488,8 +488,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "smartctl_device_temperature",
-          "legendFormat": "{{device}} - {{model_name}}",
+          "expr": "smartctl_device_temperature{temperature_type=\"current\"}",
+          "legendFormat": "{{device}}",
           "refId": "A"
         }
       ],
@@ -602,17 +602,28 @@
               "Time": true,
               "Value": true,
               "__name__": true,
+              "ata_additional_product_id": true,
+              "ata_version": true,
               "container": true,
               "endpoint": true,
               "instance": true,
+              "interface": true,
               "job": true,
               "namespace": true,
               "pod": true,
+              "protocol": true,
+              "sata_version": true,
+              "scsi_product": true,
+              "scsi_revision": true,
+              "scsi_vendor": true,
+              "scsi_version": true,
               "service": true
             },
             "indexByName": {},
             "renameByName": {
               "device": "Device",
+              "firmware_version": "Firmware",
+              "form_factor": "Form Factor",
               "model_family": "Family",
               "model_name": "Model",
               "serial_number": "Serial"

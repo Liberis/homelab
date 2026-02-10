@@ -22,20 +22,20 @@
           "mappings": [
             {
               "options": {
-                "DEGRADED": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "ONLINE"
+                },
+                "1": {
                   "color": "orange",
                   "index": 1,
                   "text": "DEGRADED"
                 },
-                "FAULTED": {
+                "2": {
                   "color": "red",
                   "index": 2,
                   "text": "FAULTED"
-                },
-                "ONLINE": {
-                  "color": "green",
-                  "index": 0,
-                  "text": "ONLINE"
                 }
               },
               "type": "value"
@@ -47,6 +47,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
               }
             ]
           }
@@ -79,7 +87,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "zfs_pool_health{pool!=\"\"}",
+          "expr": "zfs_pool_health",
           "legendFormat": "{{pool}}",
           "refId": "A"
         }
@@ -207,7 +215,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "zfs_pool_size_bytes - zfs_pool_allocated_bytes",
+          "expr": "zfs_pool_free_bytes",
           "legendFormat": "{{pool}} Free",
           "refId": "A"
         }
@@ -265,8 +273,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "zfs_pool_dedup_ratio",
-          "legendFormat": "{{pool}} Dedup",
+          "expr": "zfs_pool_deduplication_ratio",
+          "legendFormat": "{{pool}} Dedup Ratio",
           "refId": "A"
         }
       ],
@@ -329,7 +337,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 10
       },
@@ -380,36 +388,6 @@
           "color": {
             "mode": "palette-classic"
           },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -420,28 +398,28 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percentunit"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 6,
         "w": 12,
-        "x": 12,
-        "y": 10
+        "x": 0,
+        "y": 18
       },
-      "id": 6,
+      "id": 9,
       "options": {
-        "legend": {
-          "calcs": ["mean", "max"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
+        "textMode": "auto"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -450,13 +428,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "zfs_arc_hits / (zfs_arc_hits + zfs_arc_misses) * 100",
-          "legendFormat": "ARC Hit Ratio",
+          "expr": "zfs_pool_fragmentation_ratio",
+          "legendFormat": "{{pool}}",
           "refId": "A"
         }
       ],
-      "title": "ARC Cache Hit Ratio",
-      "type": "timeseries"
+      "title": "Pool Fragmentation",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -484,8 +462,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 8,
-        "x": 0,
+        "w": 12,
+        "x": 12,
         "y": 18
       },
       "id": 7,
@@ -508,132 +486,12 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "zfs_arc_size",
-          "legendFormat": "ARC Size",
+          "expr": "zfs_pool_size_bytes",
+          "legendFormat": "{{pool}} Total Size",
           "refId": "A"
         }
       ],
-      "title": "ARC Size",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 8,
-        "y": 18
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "zfs_pool_read_errors + zfs_pool_write_errors + zfs_pool_checksum_errors",
-          "legendFormat": "{{pool}} Errors",
-          "refId": "A"
-        }
-      ],
-      "title": "Pool Errors (Read + Write + Checksum)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 16,
-        "y": 18
-      },
-      "id": 9,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "zfs_pool_fragmentation / 100",
-          "legendFormat": "{{pool}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Pool Fragmentation",
+      "title": "Pool Total Size",
       "type": "stat"
     },
     {
@@ -662,7 +520,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -681,7 +540,13 @@
           "reducer": ["sum"],
           "show": false
         },
-        "showHeader": true
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Used"
+          }
+        ]
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -690,14 +555,14 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "zfs_dataset_used_bytes",
+          "expr": "zfs_dataset_used_bytes{type=\"filesystem\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "Dataset Usage",
+      "title": "Dataset Usage (Top 20)",
       "transformations": [
         {
           "id": "organize",
@@ -712,13 +577,32 @@
               "namespace": true,
               "pod": true,
               "pool": true,
-              "service": true
+              "service": true,
+              "type": true
             },
             "indexByName": {},
             "renameByName": {
-              "Value": "Used Bytes",
-              "dataset": "Dataset"
+              "Value": "Used",
+              "name": "Dataset"
             }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": true,
+                "field": "Used"
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 20
           }
         }
       ],
