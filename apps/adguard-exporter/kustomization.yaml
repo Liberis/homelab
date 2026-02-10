@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: adguard-exporter
 resources:
   - namespace.yaml
-  - externalsecret.yaml
   - deployment.yaml
   - servicemonitor.yaml
 configMapGenerator:
