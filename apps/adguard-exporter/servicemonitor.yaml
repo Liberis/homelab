@@ -1,0 +1,16 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: adguard-exporter
+  namespace: adguard-exporter
+  labels:
+    app: adguard-exporter
+spec:
+  selector:
+    matchLabels:
+      app: adguard-exporter
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 25s

@@ -43,6 +43,10 @@ resources:
   - homeassistant
   # Network monitoring
   - mktxp
+  # Hardware/Storage monitoring
+  - smartctl-exporter
+  - zfs-exporter
+  - adguard-exporter
   # Kubernetes dashboard
   - headlamp
   # AI/LLM

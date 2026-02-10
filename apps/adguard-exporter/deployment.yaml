@@ -1,0 +1,81 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adguard-exporter
+  namespace: adguard-exporter
+  labels:
+    app: adguard-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adguard-exporter
+  template:
+    metadata:
+      labels:
+        app: adguard-exporter
+    spec:
+      containers:
+        - name: adguard-exporter
+          image: ghcr.io/henrywhitaker3/adguard-exporter:v1.2.1
+          env:
+            - name: ADGUARD_SERVERS
+              value: "http://adguard-home.adguard.svc.cluster.local:3000"
+            - name: ADGUARD_USERNAMES
+              valueFrom:
+                secretKeyRef:
+                  name: adguard-exporter-creds
+                  key: username
+            - name: ADGUARD_PASSWORDS
+              valueFrom:
+                secretKeyRef:
+                  name: adguard-exporter-creds
+                  key: password
+            - name: INTERVAL
+              value: "30s"
+            - name: PORT
+              value: "9618"
+            - name: LOG_LEVEL
+              value: "info"
+          ports:
+            - containerPort: 9618
+              name: metrics
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+      nodeSelector:
+        kubernetes.io/hostname: jarvis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-exporter
+  namespace: adguard-exporter
+  labels:
+    app: adguard-exporter
+spec:
+  selector:
+    app: adguard-exporter
+  ports:
+    - port: 9618
+      targetPort: metrics
+      name: metrics
