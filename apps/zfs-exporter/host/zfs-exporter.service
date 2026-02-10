@@ -1,0 +1,22 @@
+[Unit]
+Description=Prometheus ZFS Exporter
+Documentation=https://github.com/pdf/zfs_exporter
+After=network-online.target zfs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/zfs_exporter \
+    --web.listen-address=:9134
+Restart=always
+RestartSec=10
+
+# Security hardening (where possible for privileged access)
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=false
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

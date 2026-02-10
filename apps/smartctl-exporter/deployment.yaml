@@ -1,77 +1,7 @@
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: smartctl-exporter
-  namespace: smartctl-exporter
-  labels:
-    app: smartctl-exporter
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: smartctl-exporter
-  template:
-    metadata:
-      labels:
-        app: smartctl-exporter
-    spec:
-      containers:
-        - name: smartctl-exporter
-          image: prometheuscommunity/smartctl-exporter:v0.12.0
-          args:
-            - "--smartctl.interval=60s"
-            - "--web.listen-address=:9633"
-            - "--web.telemetry-path=/metrics"
-          ports:
-            - containerPort: 9633
-              name: metrics
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 256Mi
-          securityContext:
-            privileged: true
-            capabilities:
-              add:
-                - SYS_RAWIO
-                - SYS_ADMIN
-          volumeMounts:
-            - name: dev
-              mountPath: /dev
-              readOnly: true
-            - name: run-udev
-              mountPath: /run/udev
-              readOnly: true
-          livenessProbe:
-            httpGet:
-              path: /metrics
-              port: metrics
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /metrics
-              port: metrics
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-      volumes:
-        - name: dev
-          hostPath:
-            path: /dev
-        - name: run-udev
-          hostPath:
-            path: /run/udev
-      nodeSelector:
-        kubernetes.io/hostname: jarvis
-      hostNetwork: false
-      hostPID: false
----
+# External Endpoints for host-based smartctl-exporter
+# The exporter runs on the host (outside Kubernetes) and exposes metrics
+# Prometheus scrapes this endpoint via the Service/Endpoints defined here
 apiVersion: v1
 kind: Service
 metadata:
@@ -80,9 +10,24 @@ metadata:
   labels:
     app: smartctl-exporter
 spec:
-  selector:
-    app: smartctl-exporter
+  type: ClusterIP
+  clusterIP: None
   ports:
     - port: 9633
-      targetPort: metrics
+      targetPort: 9633
       name: metrics
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: smartctl-exporter
+  namespace: smartctl-exporter
+  labels:
+    app: smartctl-exporter
+subsets:
+  - addresses:
+      # Host IP where smartctl-exporter runs (jarvis)
+      - ip: 192.168.10.11
+    ports:
+      - port: 9633
+        name: metrics
