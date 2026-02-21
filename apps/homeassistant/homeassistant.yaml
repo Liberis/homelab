@@ -73,7 +73,7 @@ spec:
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 10Gi
-        storageClass: zfs-nfs
+        storageClass: local-path
         globalMounts:
           - path: /config
       config-file:

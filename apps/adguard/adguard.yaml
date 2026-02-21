@@ -70,12 +70,12 @@ spec:
     persistence:
       config:
         enabled: true
-        storageClass: zfs-nfs
+        storageClass: local-path
         size: 1Gi
         accessMode: ReadWriteOnce
       data:
         enabled: true
-        storageClass: zfs-nfs
+        storageClass: local-path
         size: 2Gi
         accessMode: ReadWriteOnce
 
