@@ -122,6 +122,12 @@ spec:
 
       # Main Vikunja application
       main:
+        initContainers:
+          wait-for-db:
+            image:
+              repository: busybox
+              tag: "1.36"
+            command: ['sh', '-c', 'until nc -z vikunja-postgres-rw 5432; do echo "waiting for postgres..."; sleep 2; done']
         containers:
           main:
             image:
