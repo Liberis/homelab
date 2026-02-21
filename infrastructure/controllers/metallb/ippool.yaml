@@ -7,8 +7,10 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    # Traefik - HTTP/HTTPS, SMB, GitLab SSH
-    - 192.168.10.100/32
+    # Traefik mainframe - HTTP/HTTPS
+    - 192.168.10.101/32
+    # Traefik akasha - HTTP/HTTPS, SMB, GitLab SSH
+    - 192.168.10.102/32
     # AdGuard DNS - dedicated IP for DNS service
     - 192.168.10.254/32
 ---

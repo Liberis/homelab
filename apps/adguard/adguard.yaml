@@ -248,10 +248,24 @@ spec:
         protection_enabled: true
         # DNS rewrites for local domains
         rewrites:
+          # Mainframe Traefik services
+          - domain: "auth.liberispat.com"
+            answer: 192.168.10.101
+          - domain: "adguard.liberispat.com"
+            answer: 192.168.10.101
+          - domain: "home.liberispat.com"
+            answer: 192.168.10.101
+          - domain: "k8s.liberispat.com"
+            answer: 192.168.10.101
+          - domain: "passwords.liberispat.com"
+            answer: 192.168.10.101
+          - domain: "hass.liberispat.com"
+            answer: 192.168.10.101
+          # Akasha Traefik (default for everything else)
           - domain: "*.liberispat.com"
-            answer: 192.168.10.100
+            answer: 192.168.10.102
           - domain: "liberispat.com"
-            answer: 192.168.10.100
+            answer: 192.168.10.102
           - domain: "jarvis"
             answer: 192.168.10.13
           - domain: "zion"

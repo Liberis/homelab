@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - metallb
   - traefik
+  - traefik-mainframe
   - cert-manager
   - external-secrets
   - vault

@@ -3,7 +3,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: traefik
-  namespace: traefik
+  namespace: traefik-mainframe
 spec:
   interval: 24h
   url: https://traefik.github.io/charts
@@ -12,7 +12,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: traefik
-  namespace: traefik
+  namespace: traefik-mainframe
 spec:
   interval: 30m
   driftDetection:
@@ -24,19 +24,24 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: traefik
-        namespace: traefik
+        namespace: traefik-mainframe
   values:
     # Single replica for homelab
     deployment:
       replicas: 1
 
-    # Run on control plane
+    # Run on mainframe node
     nodeSelector:
-      kubernetes.io/hostname: akasha
+      kubernetes.io/hostname: mainframe
 
     # Global settings (v39+ structure)
     global:
       sendAnonymousUsage: false
+
+    # IngressClass configuration
+    ingressClass:
+      name: traefik-mainframe
+      isDefaultClass: false
 
     # Entrypoints configuration
     ports:
@@ -65,41 +70,19 @@ spec:
           tls:
             enabled: true
 
-      # SMB (Samba)
-      smb:
-        port: 4445
-        expose:
-          default: true
-        exposedPort: 445
-        protocol: TCP
-
-      # GitLab SSH
-      gitlab-ssh:
-        port: 2222
-        expose:
-          default: true
-        exposedPort: 2222
-        protocol: TCP
-
-    # Service configuration - single LoadBalancer with dedicated IP
+    # Service configuration - LoadBalancer with dedicated IP
     service:
       enabled: true
       type: LoadBalancer
       spec:
-        loadBalancerIP: 192.168.10.102
+        loadBalancerIP: 192.168.10.101
         externalTrafficPolicy: Local
-        clusterIP: 10.43.0.100  # Static ClusterIP for CoreDNS hairpin NAT
 
     # TLS store for default certificate
     tlsStore:
       default:
         defaultCertificate:
           secretName: liberispat-wildcard-tls
-
-    # IngressClass configuration
-    ingressClass:
-      name: traefik
-      isDefaultClass: true
 
     # Enable Kubernetes Ingress provider
     providers:

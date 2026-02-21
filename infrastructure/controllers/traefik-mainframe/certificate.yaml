@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: liberispat-wildcard
+  namespace: traefik-mainframe
+spec:
+  secretName: liberispat-wildcard-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.liberispat.com"
+    - "liberispat.com"
