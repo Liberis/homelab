@@ -120,10 +120,8 @@ spec:
           - 'tcp://unbound.unbound.svc.cluster.local:53'
           - 'udp://unbound.unbound.svc.cluster.local:53'
         upstream_dns_file: ""
-        bootstrap_dns:
-          - 1.1.1.1
-        fallback_dns:
-          - https://dns.cloudflare.com/dns-query
+        bootstrap_dns: []
+        fallback_dns: []
         upstream_mode: load_balance
         fastest_timeout: 1s
         allowed_clients: []

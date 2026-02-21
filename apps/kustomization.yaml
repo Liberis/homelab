@@ -47,7 +47,7 @@ resources:
   # Hardware/Storage monitoring
   - smartctl-exporter
   - zfs-exporter
-  # - adguard-exporter  # Requires auth setup
+  - adguard-exporter
   # Kubernetes dashboard
   - headlamp
   # AI/LLM

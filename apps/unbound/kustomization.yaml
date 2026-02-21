@@ -5,3 +5,12 @@ namespace: unbound
 resources:
   - namespace.yaml
   - unbound.yaml
+  - servicemonitor.yaml
+configMapGenerator:
+  - name: unbound-dashboard
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: "1"
+    files:
+      - dashboards/unbound.json

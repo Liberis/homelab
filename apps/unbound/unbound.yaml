@@ -79,6 +79,49 @@ spec:
               limits:
                 cpu: 500m
                 memory: 256Mi
+          exporter:
+            image:
+              repository: ghcr.io/letsencrypt/unbound_exporter
+              tag: latest
+            args:
+              - --unbound.host
+              - tcp://127.0.0.1:8953
+              - --unbound.ca
+              - ""
+              - --unbound.cert
+              - ""
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /metrics
+                    port: 9167
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /metrics
+                    port: 9167
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+              startup:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /metrics
+                    port: 9167
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                cpu: 100m
+                memory: 64Mi
 
     defaultPodOptions:
       nodeSelector:
@@ -95,3 +138,31 @@ spec:
           dns-udp:
             port: 53
             protocol: UDP
+          metrics:
+            port: 9167
+            protocol: TCP
+
+    persistence:
+      custom-config:
+        enabled: true
+        type: configMap
+        name: unbound-custom-config
+        advancedMounts:
+          main:
+            main:
+              - path: /etc/unbound/custom.conf.d/stats.conf
+                subPath: stats.conf
+
+    configMaps:
+      custom-config:
+        enabled: true
+        data:
+          stats.conf: |
+            server:
+                extended-statistics: yes
+                statistics-cumulative: no
+            remote-control:
+                control-enable: yes
+                control-interface: 127.0.0.1
+                control-port: 8953
+                control-use-cert: no

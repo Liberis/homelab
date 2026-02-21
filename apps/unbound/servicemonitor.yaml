@@ -1,0 +1,16 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: unbound
+  namespace: unbound
+  labels:
+    app: unbound
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: unbound
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 25s
