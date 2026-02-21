@@ -93,6 +93,9 @@ spec:
       kubernetesCRD:
         enabled: true
         allowCrossNamespace: true
+        namespaces:
+          - traefik-mainframe
+          - authentik
 
     # Logs
     logs:
