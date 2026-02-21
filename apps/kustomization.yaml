@@ -19,6 +19,7 @@ resources:
   - lidarr
   - lazylibrarian
   - bazarr
+  - slskd
   - actual-budget
   # Backups
   - zerobyte

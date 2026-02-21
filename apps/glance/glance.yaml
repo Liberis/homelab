@@ -252,6 +252,9 @@ spec:
                           - title: Bazarr
                             url: https://bazarr.liberispat.com
                             icon: si:bazarr
+                          - title: slskd
+                            url: https://slskd.liberispat.com
+                            icon: si:soulseek
 
                       - type: monitor
                         cache: 1m
