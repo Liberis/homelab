@@ -31,9 +31,7 @@ spec:
       type: ingress
       tls:
         enabled: true
-        certSource: secret
-        secret:
-          secretName: liberispat-wildcard-tls
+        certSource: auto
       ingress:
         hosts:
           core: registry.liberispat.com

@@ -11,7 +11,6 @@ spec:
   tls:
     - hosts:
         - paperless.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: paperless.liberispat.com
       http:

@@ -13,7 +13,6 @@ spec:
   tls:
     - hosts:
         - chat.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: chat.liberispat.com
       http:

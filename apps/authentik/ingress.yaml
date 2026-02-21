@@ -12,7 +12,6 @@ spec:
   tls:
     - hosts:
         - auth.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: auth.liberispat.com
       http:

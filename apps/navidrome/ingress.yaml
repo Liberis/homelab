@@ -11,7 +11,6 @@ spec:
   tls:
     - hosts:
         - navidrome.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: navidrome.liberispat.com
       http:

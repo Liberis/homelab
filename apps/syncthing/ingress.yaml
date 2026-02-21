@@ -23,4 +23,3 @@ spec:
   tls:
     - hosts:
         - syncthing.liberispat.com
-      secretName: liberispat-wildcard-tls

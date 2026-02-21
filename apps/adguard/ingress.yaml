@@ -12,7 +12,6 @@ spec:
   tls:
     - hosts:
         - adguard.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: adguard.liberispat.com
       http:

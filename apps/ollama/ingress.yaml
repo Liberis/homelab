@@ -12,7 +12,6 @@ spec:
   tls:
     - hosts:
         - ollama.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: ollama.liberispat.com
       http:

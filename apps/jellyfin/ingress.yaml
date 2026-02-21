@@ -12,7 +12,6 @@ spec:
   tls:
     - hosts:
         - jellyfin.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: jellyfin.liberispat.com
       http:

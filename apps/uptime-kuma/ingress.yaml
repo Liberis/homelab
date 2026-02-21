@@ -12,7 +12,6 @@ spec:
   tls:
     - hosts:
         - uptime.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: uptime.liberispat.com
       http:

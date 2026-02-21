@@ -12,7 +12,6 @@ spec:
   tls:
     - hosts:
         - gitlab.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: gitlab.liberispat.com
       http:

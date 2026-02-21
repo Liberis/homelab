@@ -12,7 +12,6 @@ spec:
   tls:
     - hosts:
         - zerobyte.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: zerobyte.liberispat.com
       http:

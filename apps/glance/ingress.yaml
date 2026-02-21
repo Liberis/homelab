@@ -13,7 +13,6 @@ spec:
   tls:
     - hosts:
         - home.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: home.liberispat.com
       http:

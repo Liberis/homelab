@@ -11,7 +11,6 @@ spec:
   tls:
     - hosts:
         - lidarr.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: lidarr.liberispat.com
       http:

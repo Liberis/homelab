@@ -11,7 +11,6 @@ spec:
   tls:
     - hosts:
         - grafana.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: grafana.liberispat.com
       http:
@@ -36,7 +35,6 @@ spec:
   tls:
     - hosts:
         - prometheus.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: prometheus.liberispat.com
       http:
@@ -61,7 +59,6 @@ spec:
   tls:
     - hosts:
         - alertmanager.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: alertmanager.liberispat.com
       http:

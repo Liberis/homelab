@@ -12,7 +12,6 @@ spec:
   tls:
     - hosts:
         - changedetection.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: changedetection.liberispat.com
       http:

@@ -13,7 +13,6 @@ spec:
   tls:
     - hosts:
         - k8s.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: k8s.liberispat.com
       http:

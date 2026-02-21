@@ -12,7 +12,6 @@ spec:
   tls:
     - hosts:
         - budget.liberispat.com
-      secretName: liberispat-wildcard-tls
   rules:
     - host: budget.liberispat.com
       http:
