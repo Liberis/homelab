@@ -9,9 +9,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik
-  tls:
-    - hosts:
-        - ollama.liberispat.com
   rules:
     - host: ollama.liberispat.com
       http:

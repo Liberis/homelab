@@ -8,9 +8,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  tls:
-    - hosts:
-        - vikunja.liberispat.com
   rules:
     - host: vikunja.liberispat.com
       http:

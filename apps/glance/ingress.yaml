@@ -10,9 +10,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forward-auth@kubernetescrd
 spec:
   ingressClassName: traefik-mainframe
-  tls:
-    - hosts:
-        - home.liberispat.com
   rules:
     - host: home.liberispat.com
       http:

@@ -20,6 +20,4 @@ spec:
                 name: syncthing
                 port:
                   number: 8384
-  tls:
-    - hosts:
-        - syncthing.liberispat.com
+

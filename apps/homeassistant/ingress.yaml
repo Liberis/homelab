@@ -9,9 +9,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik-mainframe
-  tls:
-    - hosts:
-        - hass.liberispat.com
   rules:
     - host: hass.liberispat.com
       http:

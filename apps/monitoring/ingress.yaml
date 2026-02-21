@@ -8,9 +8,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  tls:
-    - hosts:
-        - grafana.liberispat.com
   rules:
     - host: grafana.liberispat.com
       http:
@@ -32,9 +29,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  tls:
-    - hosts:
-        - prometheus.liberispat.com
   rules:
     - host: prometheus.liberispat.com
       http:
@@ -56,9 +50,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  tls:
-    - hosts:
-        - alertmanager.liberispat.com
   rules:
     - host: alertmanager.liberispat.com
       http:

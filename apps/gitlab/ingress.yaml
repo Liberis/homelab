@@ -9,9 +9,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  tls:
-    - hosts:
-        - gitlab.liberispat.com
   rules:
     - host: gitlab.liberispat.com
       http:

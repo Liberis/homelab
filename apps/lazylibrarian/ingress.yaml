@@ -8,9 +8,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  tls:
-    - hosts:
-        - lazylibrarian.liberispat.com
   rules:
     - host: lazylibrarian.liberispat.com
       http:

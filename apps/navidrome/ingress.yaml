@@ -8,9 +8,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  tls:
-    - hosts:
-        - navidrome.liberispat.com
   rules:
     - host: navidrome.liberispat.com
       http:
