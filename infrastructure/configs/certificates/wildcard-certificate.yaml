@@ -1,17 +1,17 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: jarvis-local-wildcard
+  name: zion-local-wildcard
   namespace: kube-system
 spec:
-  secretName: jarvis-local-wildcard-tls
+  secretName: zion-local-wildcard-tls
   duration: 8760h # 1 year
   renewBefore: 720h # 30 days
-  commonName: "*.jarvis.local"
+  commonName: "*.zion.local"
   dnsNames:
-    - "*.jarvis.local"
-    - "jarvis.local"
+    - "*.zion.local"
+    - "zion.local"
   issuerRef:
-    name: jarvis-local-ca-issuer
+    name: zion-local-ca-issuer
     kind: ClusterIssuer
     group: cert-manager.io

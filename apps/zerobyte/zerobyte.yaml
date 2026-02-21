@@ -36,7 +36,7 @@ spec:
             env:
               TZ: "Europe/London"
               PORT: "4096"
-              RESTIC_HOSTNAME: "jarvis"
+              RESTIC_HOSTNAME: "zion"
               LOG_LEVEL: "info"
               TRUSTED_ORIGINS: "https://zerobyte.liberispat.com"
             securityContext:

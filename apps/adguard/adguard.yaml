@@ -254,6 +254,8 @@ spec:
             answer: 192.168.10.100
           - domain: "jarvis"
             answer: 192.168.10.13
+          - domain: "zion"
+            answer: 192.168.10.13
           - domain: "mainframe"
             answer: 192.168.10.11
           - domain: "akasha"

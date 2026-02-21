@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
 # Homelab Bootstrap Script
-# Run this ONCE after NixOS is deployed on jarvis
+# Run this ONCE after NixOS is deployed on zion
 #
 # Prerequisites:
-#   - NixOS deployed on jarvis and nixos nodes
+#   - NixOS deployed on zion and nixos nodes
 #   - ZFS pool 'tank' exists
-#   - SSH access to jarvis
+#   - SSH access to zion
 #   - GitHub SSH key configured for FluxCD
 #
 # Usage:
@@ -44,8 +44,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Verify we're on the right node
-if [[ "$(hostname)" != "jarvis" ]]; then
-    warn "This script is designed to run on jarvis (server node)"
+if [[ "$(hostname)" != "mainframe" ]]; then
+    warn "This script is designed to run on mainframe (server node)"
     read -p "Continue anyway? [y/N] " -n 1 -r
     echo
     [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
@@ -98,7 +98,7 @@ else
     echo ""
     cat "${SSH_KEY_PATH}.pub"
     echo ""
-    warn "Then run: sudo nixos-rebuild switch --flake .#jarvis"
+    warn "Then run: sudo nixos-rebuild switch"
     echo ""
     read -p "Press Enter after updating NixOS config..."
 fi
@@ -135,7 +135,7 @@ else
     flux bootstrap github \
         --owner="${GITHUB_REPO%/*}" \
         --repository="${GITHUB_REPO#*/}" \
-        --path=clusters/jarvis \
+        --path=clusters/zion \
         --personal
 
     log "FluxCD bootstrapped"

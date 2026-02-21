@@ -87,7 +87,7 @@ GitOps-managed Kubernetes homelab running on k3s with FluxCD for continuous deli
 
 ```
 ├── clusters/
-│   └── jarvis/              # Cluster entry point
+│   └── zion/                # Cluster entry point
 │       ├── flux-system/     # FluxCD components
 │       ├── infrastructure.yaml
 │       └── apps.yaml
@@ -156,7 +156,7 @@ spec:
    flux bootstrap github \
      --owner=<github-user> \
      --repository=homelab \
-     --path=clusters/jarvis \
+     --path=clusters/zion \
      --personal
    ```
 
