@@ -115,11 +115,12 @@ spec:
                         search-engine: duckduckgo
 
                       - type: server-stats
-                        title: mainframe
-                        type: local
-                        hide-swap: true
-                        mountpoints:
-                          /: /
+                        servers:
+                          - type: local
+                            name: mainframe
+                            hide-swap: true
+                            mountpoints:
+                              /: /
 
                   - size: full
                     widgets:

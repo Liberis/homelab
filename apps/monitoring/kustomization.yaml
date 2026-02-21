@@ -16,3 +16,24 @@ configMapGenerator:
         grafana_dashboard: "1"
     files:
       - dashboards/mktxp.json
+  - name: node-exporter-full-dashboard
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: "1"
+    files:
+      - dashboards/node-exporter-full.json
+  - name: k8s-pvs-dashboard
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: "1"
+    files:
+      - dashboards/k8s-pvs.json
+  - name: flux-dashboard
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: "1"
+    files:
+      - dashboards/flux.json

@@ -114,6 +114,18 @@ spec:
           - traefik
           - authentik
 
+    # Prometheus metrics
+    metrics:
+      prometheus:
+        entryPoint: metrics
+        addEntryPointsLabels: true
+        addServicesLabels: true
+        addRoutersLabels: true
+        service:
+          enabled: true
+        serviceMonitor:
+          enabled: true
+
     # Logs
     logs:
       general:
