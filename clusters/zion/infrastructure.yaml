@@ -21,6 +21,7 @@ metadata:
   name: infrastructure-configs
   namespace: flux-system
 spec:
+  suspend: true
   dependsOn:
     - name: infrastructure-controllers
   interval: 1h
