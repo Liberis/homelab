@@ -145,155 +145,147 @@ spec:
 
                   - size: full
                     widgets:
-                      - type: bookmarks
-                        groups:
-                          - title: Monitoring
-                            color: 217 70 70
-                            links:
-                              - title: Grafana
-                                url: https://grafana.liberispat.com
-                                icon: si:grafana
-                              - title: Prometheus
-                                url: https://prometheus.liberispat.com
-                                icon: si:prometheus
-                              - title: Alertmanager
-                                url: https://alertmanager.liberispat.com
-                                icon: si:alertmanager
-                              - title: Uptime Kuma
-                                url: https://uptime.liberispat.com
-                                icon: si:uptimekuma
-                              - title: ChangeDetection
-                                url: https://changedetection.liberispat.com
-                                icon: si:iconify
+                      - type: monitor
+                        cache: 1m
+                        title: Monitoring
+                        sites:
+                          - title: Grafana
+                            url: https://grafana.liberispat.com
+                            icon: si:grafana
+                          - title: Prometheus
+                            url: https://prometheus.liberispat.com
+                            icon: si:prometheus
+                          - title: Alertmanager
+                            url: https://alertmanager.liberispat.com
+                            icon: si:alertmanager
+                          - title: Uptime Kuma
+                            url: https://uptime.liberispat.com
+                            icon: si:uptimekuma
+                          - title: ChangeDetection
+                            url: https://changedetection.liberispat.com
+                            icon: si:iconify
 
-                      - type: bookmarks
-                        groups:
-                          - title: Infrastructure
-                            color: 200 60 50
-                            links:
-                              - title: HashiCorp Vault
-                                url: https://vault.liberispat.com
-                                icon: si:vault
-                              - title: Harbor Registry
-                                url: https://registry.liberispat.com
-                                icon: si:harbor
-                              - title: GitLab
-                                url: https://gitlab.liberispat.com
-                                icon: si:gitlab
-                              - title: Flux CD
-                                url: https://flux.liberispat.com
-                                icon: si:flux
-                              - title: ZeroByte
-                                url: https://zerobyte.liberispat.com
-                                icon: si:restic
-                              - title: Headlamp
-                                url: https://k8s.liberispat.com
-                                icon: si:kubernetes
+                      - type: monitor
+                        cache: 1m
+                        title: Infrastructure
+                        sites:
+                          - title: HashiCorp Vault
+                            url: https://vault.liberispat.com
+                            icon: si:vault
+                          - title: Harbor Registry
+                            url: https://registry.liberispat.com
+                            icon: si:harbor
+                          - title: GitLab
+                            url: https://gitlab.liberispat.com
+                            icon: si:gitlab
+                          - title: Flux CD
+                            url: https://flux.liberispat.com
+                            icon: si:flux
+                          - title: ZeroByte
+                            url: https://zerobyte.liberispat.com
+                            icon: si:restic
+                          - title: Headlamp
+                            url: https://k8s.liberispat.com
+                            icon: si:kubernetes
 
-                      - type: bookmarks
-                        groups:
-                          - title: Network
-                            color: 150 60 50
-                            links:
-                              - title: AdGuard Home
-                                url: https://adguard.liberispat.com
-                                icon: si:adguard
-                              - title: MikroTik Metrics
-                                url: https://grafana.liberispat.com/d/mktxp-dashboard
-                                icon: si:mikrotik
+                      - type: monitor
+                        cache: 1m
+                        title: Network
+                        sites:
+                          - title: AdGuard Home
+                            url: https://adguard.liberispat.com
+                            icon: si:adguard
+                          - title: MikroTik Metrics
+                            url: https://grafana.liberispat.com/d/mktxp-dashboard
+                            icon: si:mikrotik
 
-                      - type: bookmarks
-                        groups:
-                          - title: Home
-                            color: 40 70 60
-                            links:
-                              - title: Home Assistant
-                                url: https://hass.liberispat.com
-                                icon: si:homeassistant
-                              - title: Mealie
-                                url: https://mealie.liberispat.com
-                                icon: si:mealie
+                      - type: monitor
+                        cache: 1m
+                        title: Home
+                        sites:
+                          - title: Home Assistant
+                            url: https://hass.liberispat.com
+                            icon: si:homeassistant
+                          - title: Mealie
+                            url: https://mealie.liberispat.com
+                            icon: si:mealie
 
-                      - type: bookmarks
-                        groups:
-                          - title: Media
-                            color: 280 60 60
-                            links:
-                              - title: Jellyfin
-                                url: https://jellyfin.liberispat.com
-                                icon: si:jellyfin
-                              - title: Navidrome
-                                url: https://navidrome.liberispat.com
-                                icon: si:navidrome
-                              - title: Audiobookshelf
-                                url: https://audiobookshelf.liberispat.com
-                                icon: si:audiobookshelf
-                              - title: Immich Photos
-                                url: https://photos.liberispat.com
-                                icon: si:immich
+                      - type: monitor
+                        cache: 1m
+                        title: Media
+                        sites:
+                          - title: Jellyfin
+                            url: https://jellyfin.liberispat.com
+                            icon: si:jellyfin
+                          - title: Navidrome
+                            url: https://navidrome.liberispat.com
+                            icon: si:navidrome
+                          - title: Audiobookshelf
+                            url: https://audiobookshelf.liberispat.com
+                            icon: si:audiobookshelf
+                          - title: Immich Photos
+                            url: https://photos.liberispat.com
+                            icon: si:immich
 
-                      - type: bookmarks
-                        groups:
-                          - title: Downloads
-                            color: 30 70 55
-                            links:
-                              - title: qBittorrent
-                                url: https://qui.liberispat.com
-                                icon: si:qbittorrent
-                              - title: Prowlarr
-                                url: https://prowlarr.liberispat.com
-                                icon: si:prowlarr
-                              - title: Sonarr
-                                url: https://sonarr.liberispat.com
-                                icon: si:sonarr
-                              - title: Radarr
-                                url: https://radarr.liberispat.com
-                                icon: si:radarr
-                              - title: Lidarr
-                                url: https://lidarr.liberispat.com
-                                icon: si:lidarr
-                              - title: LazyLibrarian
-                                url: https://lazylibrarian.liberispat.com
-                                icon: si:bookstack
-                              - title: Bazarr
-                                url: https://bazarr.liberispat.com
-                                icon: si:bazarr
+                      - type: monitor
+                        cache: 1m
+                        title: Downloads
+                        sites:
+                          - title: qBittorrent
+                            url: https://qui.liberispat.com
+                            icon: si:qbittorrent
+                          - title: Prowlarr
+                            url: https://prowlarr.liberispat.com
+                            icon: si:prowlarr
+                          - title: Sonarr
+                            url: https://sonarr.liberispat.com
+                            icon: si:sonarr
+                          - title: Radarr
+                            url: https://radarr.liberispat.com
+                            icon: si:radarr
+                          - title: Lidarr
+                            url: https://lidarr.liberispat.com
+                            icon: si:lidarr
+                          - title: LazyLibrarian
+                            url: https://lazylibrarian.liberispat.com
+                            icon: si:bookstack
+                          - title: Bazarr
+                            url: https://bazarr.liberispat.com
+                            icon: si:bazarr
 
-                      - type: bookmarks
-                        groups:
-                          - title: Productivity
-                            color: 320 60 55
-                            links:
-                              - title: Vikunja
-                                url: https://vikunja.liberispat.com
-                                icon: si:vikunja
-                              - title: Paperless-ngx
-                                url: https://paperless.liberispat.com
-                                icon: si:paperlessngx
-                              - title: Actual Budget
-                                url: https://budget.liberispat.com
-                                icon: si:actualbudget
-                              - title: Vaultwarden
-                                url: https://passwords.liberispat.com
-                                icon: si:vaultwarden
-                              - title: FileBrowser
-                                url: https://files.liberispat.com
-                                icon: si:files
-                              - title: n8n
-                                url: https://n8n.liberispat.com
-                                icon: si:n8n
+                      - type: monitor
+                        cache: 1m
+                        title: Productivity
+                        sites:
+                          - title: Vikunja
+                            url: https://vikunja.liberispat.com
+                            icon: si:vikunja
+                          - title: Paperless-ngx
+                            url: https://paperless.liberispat.com
+                            icon: si:paperlessngx
+                          - title: Actual Budget
+                            url: https://budget.liberispat.com
+                            icon: si:actualbudget
+                          - title: Vaultwarden
+                            url: https://passwords.liberispat.com
+                            icon: si:vaultwarden
+                          - title: FileBrowser
+                            url: https://files.liberispat.com
+                            icon: si:files
+                          - title: n8n
+                            url: https://n8n.liberispat.com
+                            icon: si:n8n
 
-                      - type: bookmarks
-                        groups:
-                          - title: AI
-                            color: 260 70 60
-                            links:
-                              - title: OpenWebUI
-                                url: https://chat.liberispat.com
-                                icon: si:openai
-                              - title: Ollama
-                                url: https://ollama.liberispat.com
-                                icon: si:ollama
+                      - type: monitor
+                        cache: 1m
+                        title: AI
+                        sites:
+                          - title: OpenWebUI
+                            url: https://chat.liberispat.com
+                            icon: si:openai
+                          - title: Ollama
+                            url: https://ollama.liberispat.com
+                            icon: si:ollama
 
               - name: DevOps
                 columns:
