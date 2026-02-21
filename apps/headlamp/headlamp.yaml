@@ -76,7 +76,7 @@ spec:
 
     defaultPodOptions:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: mainframe
 
     service:
       main:

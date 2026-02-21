@@ -60,4 +60,4 @@ spec:
         memory: 512Mi
     # Run on control plane with ZFS
     nodeSelector:
-      kubernetes.io/hostname: jarvis
+      kubernetes.io/hostname: akasha

@@ -52,7 +52,7 @@ spec:
 
   affinity:
     nodeSelector:
-      kubernetes.io/hostname: jarvis
+      kubernetes.io/hostname: akasha
 ---
 # Immich application
 apiVersion: helm.toolkit.fluxcd.io/v2

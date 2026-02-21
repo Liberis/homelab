@@ -73,18 +73,18 @@ spec:
       type: internal
       internal:
         nodeSelector:
-          kubernetes.io/hostname: jarvis
+          kubernetes.io/hostname: akasha
 
     redis:
       type: internal
       internal:
         nodeSelector:
-          kubernetes.io/hostname: jarvis
+          kubernetes.io/hostname: akasha
 
     trivy:
       enabled: true
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: akasha
 
     metrics:
       enabled: true
@@ -93,10 +93,10 @@ spec:
 
     portal:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: akasha
     core:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: akasha
       # OIDC Configuration (Authentik)
       configOverwriteJson: |
         {
@@ -120,7 +120,7 @@ spec:
               key: OIDC_CLIENT_SECRET
     jobservice:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: akasha
     registry:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: akasha

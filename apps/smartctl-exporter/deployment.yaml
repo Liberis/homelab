@@ -26,8 +26,8 @@ metadata:
     app: smartctl-exporter
 subsets:
   - addresses:
-      # Host IP where smartctl-exporter runs (jarvis)
-      - ip: 192.168.10.11
+      # Host IP where smartctl-exporter runs (akasha)
+      - ip: 192.168.10.12
     ports:
       - port: 9633
         name: metrics

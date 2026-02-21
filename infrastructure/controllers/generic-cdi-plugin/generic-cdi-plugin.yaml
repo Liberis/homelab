@@ -47,7 +47,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - key: nixos-nvidia-cdi
+              - key: nvidia-cdi
                 operator: In
                 values:
                   - "true"

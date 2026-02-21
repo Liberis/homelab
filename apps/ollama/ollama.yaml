@@ -67,7 +67,7 @@ spec:
 
     defaultPodOptions:
       nodeSelector:
-        kubernetes.io/hostname: nixos
+        kubernetes.io/hostname: jarvis
 
     service:
       main:

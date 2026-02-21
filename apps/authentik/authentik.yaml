@@ -38,7 +38,7 @@ spec:
 
   affinity:
     nodeSelector:
-      kubernetes.io/hostname: jarvis
+      kubernetes.io/hostname: mainframe
 ---
 # Authentik application
 apiVersion: helm.toolkit.fluxcd.io/v2
@@ -84,6 +84,8 @@ spec:
 
     server:
       replicas: 1
+      nodeSelector:
+        kubernetes.io/hostname: mainframe
       resources:
         requests:
           cpu: 100m
@@ -94,6 +96,8 @@ spec:
 
     worker:
       replicas: 1
+      nodeSelector:
+        kubernetes.io/hostname: mainframe
       resources:
         requests:
           cpu: 100m
@@ -132,7 +136,7 @@ spec:
         app: authentik-valkey
     spec:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: mainframe
       containers:
         - name: valkey
           image: valkey/valkey:8-alpine

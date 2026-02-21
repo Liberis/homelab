@@ -29,7 +29,7 @@ spec:
 
   affinity:
     nodeSelector:
-      kubernetes.io/hostname: jarvis
+      kubernetes.io/hostname: akasha
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
@@ -263,4 +263,4 @@ spec:
 
     defaultPodOptions:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: akasha

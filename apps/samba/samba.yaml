@@ -30,7 +30,7 @@ spec:
         app: samba
     spec:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: akasha
       containers:
         - name: samba
           image: dperson/samba:latest

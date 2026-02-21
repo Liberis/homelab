@@ -8,7 +8,7 @@ metadata:
 spec:
   addresses:
     # Traefik - HTTP/HTTPS, SMB, GitLab SSH
-    - 192.168.10.11/32
+    - 192.168.10.100/32
     # AdGuard DNS - dedicated IP for DNS service
     - 192.168.10.254/32
 ---

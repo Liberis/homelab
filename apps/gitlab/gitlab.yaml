@@ -23,7 +23,7 @@ spec:
         app: gitlab
     spec:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: akasha
       containers:
         - name: gitlab
           image: gitlab/gitlab-ce:latest

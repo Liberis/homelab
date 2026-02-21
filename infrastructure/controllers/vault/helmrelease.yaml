@@ -28,6 +28,8 @@ spec:
   values:
     server:
       enabled: true
+      nodeSelector:
+        kubernetes.io/hostname: mainframe
       standalone:
         enabled: true
         config: |

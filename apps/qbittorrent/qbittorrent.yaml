@@ -105,7 +105,7 @@ spec:
 
     defaultPodOptions:
       nodeSelector:
-        kubernetes.io/hostname: jarvis
+        kubernetes.io/hostname: akasha
 
     service:
       main:
