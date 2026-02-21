@@ -5,7 +5,6 @@ metadata:
   name: monitoring
   namespace: flux-system
 spec:
-  suspend: true
   dependsOn:
     - name: infrastructure-configs
   interval: 1h
@@ -24,7 +23,6 @@ metadata:
   name: apps
   namespace: flux-system
 spec:
-  suspend: true
   dependsOn:
     - name: infrastructure-configs
     - name: monitoring
