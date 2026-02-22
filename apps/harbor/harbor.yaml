@@ -30,8 +30,7 @@ spec:
     expose:
       type: ingress
       tls:
-        enabled: true
-        certSource: auto
+        enabled: false
       ingress:
         hosts:
           core: registry.liberispat.com

@@ -197,6 +197,9 @@ spec:
                           - title: Jellyfin
                             url: https://jellyfin.liberispat.com
                             icon: si:jellyfin
+                          - title: Navidrome
+                            url: https://navidrome.liberispat.com
+                            icon: si:navidrome
                           - title: Funkwhale
                             url: https://music.liberispat.com
                             icon: si:funkwhale
