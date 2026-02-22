@@ -4,5 +4,6 @@ kind: Kustomization
 namespace: koel
 resources:
   - namespace.yaml
+  - externalsecret.yaml
   - koel.yaml
   - ingress.yaml

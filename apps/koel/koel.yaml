@@ -28,6 +28,16 @@ spec:
   values:
     controllers:
       main:
+        initContainers:
+          init:
+            image:
+              repository: phanan/koel
+              tag: latest
+            command:
+              - sh
+              - -c
+              - |
+                php artisan koel:init --no-interaction || true
         containers:
           main:
             image:
@@ -83,14 +93,30 @@ spec:
             port: 80
 
     persistence:
+      env:
+        enabled: true
+        type: secret
+        name: koel-env
+        advancedMounts:
+          main:
+            main:
+              - path: /var/www/html/.env
+                subPath: .env
+            init:
+              - path: /var/www/html/.env
+                subPath: .env
       data:
         enabled: true
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
         size: 2Gi
         storageClass: zfs-nfs
-        globalMounts:
-          - path: /var/www/html/database
+        advancedMounts:
+          main:
+            main:
+              - path: /var/www/html/database
+            init:
+              - path: /var/www/html/database
       music:
         enabled: true
         type: hostPath
@@ -106,3 +132,4 @@ spec:
         storageClass: zfs-nfs
         globalMounts:
           - path: /var/www/html/public/img/covers
+
