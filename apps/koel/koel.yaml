@@ -114,9 +114,9 @@ spec:
         advancedMounts:
           main:
             main:
-              - path: /var/www/html/database
+              - path: /var/www/html/storage
             init:
-              - path: /var/www/html/database
+              - path: /var/www/html/storage
       music:
         enabled: true
         type: hostPath
