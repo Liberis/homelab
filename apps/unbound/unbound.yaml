@@ -140,6 +140,7 @@ spec:
       main:
         controller: main
         type: ClusterIP
+        clusterIP: 10.43.0.53
         ports:
           dns-tcp:
             port: 53
