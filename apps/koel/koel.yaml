@@ -32,7 +32,7 @@ spec:
           init:
             image:
               repository: phanan/koel
-              tag: latest
+              tag: "8.2.0"
             command:
               - sh
               - -c
@@ -42,7 +42,7 @@ spec:
           main:
             image:
               repository: phanan/koel
-              tag: latest
+              tag: "8.2.0"
             env:
               TZ: "Europe/London"
               DB_CONNECTION: sqlite
@@ -114,9 +114,9 @@ spec:
         advancedMounts:
           main:
             main:
-              - path: /var/www/html/storage
+              - path: /data
             init:
-              - path: /var/www/html/storage
+              - path: /data
       music:
         enabled: true
         type: hostPath
