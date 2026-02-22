@@ -497,6 +497,29 @@ data:
           policy_engine_mode: any
           open_in_new_tab: true
 
+      # Koel (Music Player)
+      - model: authentik_providers_proxy.proxyprovider
+        id: koel-provider
+        identifiers:
+          name: Koel Proxy
+        attrs:
+          name: Koel Proxy
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          mode: forward_single
+          external_host: https://koel.liberispat.com
+      - model: authentik_core.application
+        id: koel-app
+        identifiers:
+          slug: koel
+        attrs:
+          name: Koel
+          slug: koel
+          provider: !KeyOf koel-provider
+          meta_launch_url: https://koel.liberispat.com
+          policy_engine_mode: any
+          open_in_new_tab: true
+
       # Create Forward Auth Outpost with all proxy providers
       - model: authentik_outposts.outpost
         id: forward-auth-outpost
@@ -516,6 +539,7 @@ data:
             - !KeyOf zerobyte-provider
             - !KeyOf openwebui-provider
             - !KeyOf n8n-provider
+            - !KeyOf koel-provider
           config:
             authentik_host: https://auth.liberispat.com/
             log_level: info
