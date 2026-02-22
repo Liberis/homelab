@@ -120,7 +120,8 @@ spec:
                             name: mainframe
                             hide-swap: true
                             mountpoints:
-                              /: /
+                              /:
+                                name: Root
 
                   - size: full
                     widgets:
