@@ -221,6 +221,10 @@ spec:
             env:
               FUNKWHALE_API_HOST: funkwhale-api
               FUNKWHALE_API_PORT: "5000"
+              FUNKWHALE_HOSTNAME: music.liberispat.com
+              FUNKWHALE_PROTOCOL: https
+              NGINX_MAX_BODY_SIZE: "100M"
+              MUSIC_DIRECTORY_PATH: /srv/funkwhale/data/music
             probes:
               liveness:
                 enabled: true
