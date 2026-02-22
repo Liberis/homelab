@@ -224,7 +224,10 @@ spec:
               FUNKWHALE_HOSTNAME: music.liberispat.com
               FUNKWHALE_PROTOCOL: https
               NGINX_MAX_BODY_SIZE: "100M"
+              MEDIA_ROOT: /srv/funkwhale/data/media
+              STATIC_ROOT: /srv/funkwhale/data/static
               MUSIC_DIRECTORY_PATH: /srv/funkwhale/data/music
+              MUSIC_DIRECTORY_SERVE_PATH: /srv/funkwhale/data/music
             probes:
               liveness:
                 enabled: true
