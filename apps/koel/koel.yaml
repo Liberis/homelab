@@ -29,7 +29,7 @@ spec:
     controllers:
       main:
         initContainers:
-          init:
+          init-storage:
             image:
               repository: phanan/koel
               tag: "8.2.0"
@@ -37,7 +37,13 @@ spec:
               - sh
               - -c
               - |
-                php artisan koel:init --no-interaction || true
+                mkdir -p /var/www/html/storage/logs \
+                         /var/www/html/storage/framework/cache/data \
+                         /var/www/html/storage/framework/sessions \
+                         /var/www/html/storage/framework/views \
+                         /var/www/html/storage/app/public
+                chown -R www-data:www-data /var/www/html/storage
+                chmod -R 775 /var/www/html/storage
         containers:
           main:
             image:
@@ -102,7 +108,7 @@ spec:
             main:
               - path: /var/www/html/.env
                 subPath: .env
-            init:
+            init-storage:
               - path: /var/www/html/.env
                 subPath: .env
       data:
@@ -115,7 +121,7 @@ spec:
           main:
             main:
               - path: /data
-            init:
+            init-storage:
               - path: /data
       music:
         enabled: true
