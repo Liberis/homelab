@@ -4,5 +4,6 @@ kind: Kustomization
 namespace: adguard
 resources:
   - namespace.yaml
+  - externalsecret.yaml
   - adguard.yaml
   - ingress.yaml
