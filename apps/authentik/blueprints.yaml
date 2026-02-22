@@ -497,26 +497,26 @@ data:
           policy_engine_mode: any
           open_in_new_tab: true
 
-      # Koel (Music Player)
+      # Funkwhale (Music Player)
       - model: authentik_providers_proxy.proxyprovider
-        id: koel-provider
+        id: funkwhale-provider
         identifiers:
-          name: Koel Proxy
+          name: Funkwhale Proxy
         attrs:
-          name: Koel Proxy
+          name: Funkwhale Proxy
           authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
           invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
           mode: forward_single
-          external_host: https://koel.liberispat.com
+          external_host: https://music.liberispat.com
       - model: authentik_core.application
-        id: koel-app
+        id: funkwhale-app
         identifiers:
-          slug: koel
+          slug: funkwhale
         attrs:
-          name: Koel
-          slug: koel
-          provider: !KeyOf koel-provider
-          meta_launch_url: https://koel.liberispat.com
+          name: Funkwhale
+          slug: funkwhale
+          provider: !KeyOf funkwhale-provider
+          meta_launch_url: https://music.liberispat.com
           policy_engine_mode: any
           open_in_new_tab: true
 
@@ -539,7 +539,7 @@ data:
             - !KeyOf zerobyte-provider
             - !KeyOf openwebui-provider
             - !KeyOf n8n-provider
-            - !KeyOf koel-provider
+            - !KeyOf funkwhale-provider
           config:
             authentik_host: https://auth.liberispat.com/
             log_level: info

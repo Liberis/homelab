@@ -8,7 +8,7 @@ resources:
   - unbound
   # Identity provider
   - authentik
-  - koel
+  - funkwhale
   - audiobookshelf
   - jellyfin
   - qbittorrent

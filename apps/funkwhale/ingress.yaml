@@ -2,21 +2,21 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: koel
-  namespace: koel
+  name: funkwhale
+  namespace: funkwhale
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forward-auth@kubernetescrd
 spec:
   rules:
-    - host: koel.liberispat.com
+    - host: music.liberispat.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: koel
+                name: funkwhale-frontend
                 port:
                   number: 80

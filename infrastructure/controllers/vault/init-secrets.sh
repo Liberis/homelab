@@ -85,6 +85,7 @@ echo -e "${YELLOW}[1/15] Checking mktxp secrets...${NC}"
 create_secret_if_missing mktxp \
     router_host="192.168.88.1" \
     switch_host="192.168.88.2" \
+    ap_host="192.168.88.3" \
     username="mktxp" \
     password="$(openssl rand -hex 32)"
 
@@ -232,8 +233,33 @@ else
     echo -e "${GREEN}  Secret 'vikunja' already exists, skipping${NC}"
 fi
 
-# Authentik (if used)
-echo -e "${YELLOW}[15/15] Checking authentik secrets...${NC}"
+# AdGuard Home
+echo -e "${YELLOW}[15/18] Checking adguard secrets...${NC}"
+if ! secret_exists adguard; then
+    ADGUARD_PASSWORD=$(openssl rand -hex 16)
+    ADGUARD_BCRYPT=$(python3 -c "import bcrypt; print(bcrypt.hashpw(b'${ADGUARD_PASSWORD}', bcrypt.gensalt()).decode())" 2>/dev/null || echo "GENERATE_BCRYPT_MANUALLY")
+    create_secret_if_missing adguard \
+        username="admin" \
+        password="$ADGUARD_PASSWORD" \
+        password_bcrypt="$ADGUARD_BCRYPT"
+    echo -e "${YELLOW}  AdGuard password: $ADGUARD_PASSWORD${NC}"
+    echo -e "${YELLOW}  (Save this! You'll need it to log in)${NC}"
+else
+    echo -e "${GREEN}  Secret 'adguard' already exists, skipping${NC}"
+fi
+
+# Funkwhale
+echo -e "${YELLOW}[16/18] Checking funkwhale secrets...${NC}"
+create_secret_if_missing funkwhale \
+    django_secret_key="$(openssl rand -base64 45)"
+
+# mktxp AP host
+echo -e "${YELLOW}[17/18] Checking mktxp ap_host...${NC}"
+echo -e "${YELLOW}  Note: If mktxp needs ap_host, update it manually:${NC}"
+echo -e "${YELLOW}  vault kv patch secret/mktxp ap_host=192.168.88.3${NC}"
+
+# Authentik
+echo -e "${YELLOW}[18/18] Checking authentik secrets...${NC}"
 if ! secret_exists authentik; then
     $VAULT_CMD kv put secret/authentik \
         db_username="authentik" \

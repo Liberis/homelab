@@ -1,0 +1,325 @@
+---
+# PostgreSQL Cluster for Funkwhale
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: funkwhale-postgres
+  namespace: funkwhale
+spec:
+  instances: 1
+  primaryUpdateStrategy: unsupervised
+
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+
+  storage:
+    size: 5Gi
+    storageClass: local-path
+
+  postgresql:
+    parameters:
+      shared_buffers: "64MB"
+      max_connections: "50"
+
+  bootstrap:
+    initdb:
+      database: funkwhale
+      owner: funkwhale
+
+  nodeMaintenanceWindow:
+    inProgress: false
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: funkwhale
+spec:
+  interval: 24h
+  url: https://bjw-s-labs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: funkwhale
+  namespace: funkwhale
+spec:
+  interval: 30m
+  driftDetection:
+    mode: enabled
+  chart:
+    spec:
+      chart: app-template
+      version: "3.*"
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: funkwhale
+  values:
+    controllers:
+      valkey:
+        containers:
+          main:
+            image:
+              repository: valkey/valkey
+              tag: 8-alpine
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+
+      api:
+        initContainers:
+          migrate:
+            image:
+              repository: funkwhale/api
+              tag: "1.4"
+            command: ["funkwhale-manage", "migrate", "--noinput"]
+            envFrom:
+              - secretRef:
+                  name: funkwhale-secrets
+            env:
+              FUNKWHALE_HOSTNAME: music.liberispat.com
+              FUNKWHALE_PROTOCOL: https
+              FUNKWHALE_API_IP: "0.0.0.0"
+              FUNKWHALE_API_PORT: "5000"
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: funkwhale-postgres-app
+                    key: uri
+              CACHE_URL: redis://funkwhale-valkey:6379/0
+              MEDIA_ROOT: /srv/funkwhale/data/media
+              STATIC_ROOT: /srv/funkwhale/data/static
+              MUSIC_DIRECTORY_PATH: /srv/funkwhale/data/music
+              MUSIC_DIRECTORY_SERVE_PATH: /srv/funkwhale/data/music
+        containers:
+          main:
+            image:
+              repository: funkwhale/api
+              tag: "1.4"
+            envFrom:
+              - secretRef:
+                  name: funkwhale-secrets
+            env:
+              FUNKWHALE_HOSTNAME: music.liberispat.com
+              FUNKWHALE_PROTOCOL: https
+              FUNKWHALE_API_IP: "0.0.0.0"
+              FUNKWHALE_API_PORT: "5000"
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: funkwhale-postgres-app
+                    key: uri
+              CACHE_URL: redis://funkwhale-valkey:6379/0
+              MEDIA_ROOT: /srv/funkwhale/data/media
+              STATIC_ROOT: /srv/funkwhale/data/static
+              MUSIC_DIRECTORY_PATH: /srv/funkwhale/data/music
+              MUSIC_DIRECTORY_SERVE_PATH: /srv/funkwhale/data/music
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /api/v1/instance/nodeinfo/2.0/
+                    port: 5000
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /api/v1/instance/nodeinfo/2.0/
+                    port: 5000
+                  initialDelaySeconds: 15
+                  periodSeconds: 10
+              startup:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /api/v1/instance/nodeinfo/2.0/
+                    port: 5000
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 512Mi
+
+      celery-worker:
+        containers:
+          main:
+            image:
+              repository: funkwhale/api
+              tag: "1.4"
+            command: ["celery", "-A", "funkwhale_api.taskapp", "worker", "-l", "INFO", "--concurrency=2"]
+            env:
+              C_FORCE_ROOT: "true"
+              FUNKWHALE_HOSTNAME: music.liberispat.com
+              FUNKWHALE_PROTOCOL: https
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: funkwhale-postgres-app
+                    key: uri
+              CACHE_URL: redis://funkwhale-valkey:6379/0
+              MEDIA_ROOT: /srv/funkwhale/data/media
+              STATIC_ROOT: /srv/funkwhale/data/static
+              MUSIC_DIRECTORY_PATH: /srv/funkwhale/data/music
+              MUSIC_DIRECTORY_SERVE_PATH: /srv/funkwhale/data/music
+            envFrom:
+              - secretRef:
+                  name: funkwhale-secrets
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+
+      celery-beat:
+        containers:
+          main:
+            image:
+              repository: funkwhale/api
+              tag: "1.4"
+            command: ["celery", "-A", "funkwhale_api.taskapp", "beat", "-l", "INFO"]
+            env:
+              C_FORCE_ROOT: "true"
+              FUNKWHALE_HOSTNAME: music.liberispat.com
+              FUNKWHALE_PROTOCOL: https
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: funkwhale-postgres-app
+                    key: uri
+              CACHE_URL: redis://funkwhale-valkey:6379/0
+              MEDIA_ROOT: /srv/funkwhale/data/media
+              STATIC_ROOT: /srv/funkwhale/data/static
+              MUSIC_DIRECTORY_PATH: /srv/funkwhale/data/music
+              MUSIC_DIRECTORY_SERVE_PATH: /srv/funkwhale/data/music
+            envFrom:
+              - secretRef:
+                  name: funkwhale-secrets
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+
+      frontend:
+        containers:
+          main:
+            image:
+              repository: funkwhale/front
+              tag: "1.4"
+            env:
+              FUNKWHALE_API_HOST: funkwhale-api
+              FUNKWHALE_API_PORT: "5000"
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 80
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 80
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+              startup:
+                enabled: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 80
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: akasha
+
+    service:
+      frontend:
+        controller: frontend
+        type: ClusterIP
+        ports:
+          http:
+            port: 80
+      api:
+        controller: api
+        type: ClusterIP
+        ports:
+          api:
+            port: 5000
+      valkey:
+        controller: valkey
+        type: ClusterIP
+        ports:
+          valkey:
+            port: 6379
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        storageClass: zfs-nfs
+        advancedMounts:
+          api:
+            migrate:
+              - path: /srv/funkwhale/data
+            main:
+              - path: /srv/funkwhale/data
+          celery-worker:
+            main:
+              - path: /srv/funkwhale/data
+          celery-beat:
+            main:
+              - path: /srv/funkwhale/data
+          frontend:
+            main:
+              - path: /srv/funkwhale/data
+      music:
+        enabled: true
+        type: hostPath
+        hostPath: /mnt/media
+        hostPathType: Directory
+        advancedMounts:
+          api:
+            main:
+              - path: /srv/funkwhale/data/music
+            migrate:
+              - path: /srv/funkwhale/data/music
+          celery-worker:
+            main:
+              - path: /srv/funkwhale/data/music
+          frontend:
+            main:
+              - path: /srv/funkwhale/data/music
+      valkey-data:
+        enabled: true
+        type: emptyDir
+        advancedMounts:
+          valkey:
+            main:
+              - path: /data

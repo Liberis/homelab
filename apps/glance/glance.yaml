@@ -197,9 +197,9 @@ spec:
                           - title: Jellyfin
                             url: https://jellyfin.liberispat.com
                             icon: si:jellyfin
-                          - title: Koel
-                            url: https://koel.liberispat.com
-                            icon: si:koel
+                          - title: Funkwhale
+                            url: https://music.liberispat.com
+                            icon: si:funkwhale
                           - title: Audiobookshelf
                             url: https://audiobookshelf.liberispat.com
                             icon: si:audiobookshelf
