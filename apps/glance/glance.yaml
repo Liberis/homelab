@@ -197,9 +197,9 @@ spec:
                           - title: Jellyfin
                             url: https://jellyfin.liberispat.com
                             icon: si:jellyfin
-                          - title: Navidrome
-                            url: https://navidrome.liberispat.com
-                            icon: si:navidrome
+                          - title: Koel
+                            url: https://koel.liberispat.com
+                            icon: si:koel
                           - title: Audiobookshelf
                             url: https://audiobookshelf.liberispat.com
                             icon: si:audiobookshelf
