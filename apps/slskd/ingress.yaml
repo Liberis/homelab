@@ -16,6 +16,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: slskd-main
+                name: slskd
                 port:
                   number: 5030
