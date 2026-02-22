@@ -37,13 +37,9 @@ spec:
               - sh
               - -c
               - |
-                mkdir -p /var/www/html/storage/logs \
-                         /var/www/html/storage/framework/cache/data \
-                         /var/www/html/storage/framework/sessions \
-                         /var/www/html/storage/framework/views \
-                         /var/www/html/storage/app/public
-                chown -R www-data:www-data /var/www/html/storage
-                chmod -R 775 /var/www/html/storage
+                cp -a /var/www/html/storage/. /storage/
+                chown -R www-data:www-data /storage
+                chmod -R 775 /storage
         containers:
           main:
             image:
@@ -111,6 +107,15 @@ spec:
             init-storage:
               - path: /var/www/html/.env
                 subPath: .env
+      storage:
+        enabled: true
+        type: emptyDir
+        advancedMounts:
+          main:
+            init-storage:
+              - path: /storage
+            main:
+              - path: /var/www/html/storage
       data:
         enabled: true
         type: persistentVolumeClaim
