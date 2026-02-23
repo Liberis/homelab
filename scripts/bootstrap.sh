@@ -80,42 +80,9 @@ else
 fi
 
 #############################################
-# PHASE 2: Democratic-CSI SSH Key
+# PHASE 2: FluxCD Bootstrap
 #############################################
-step "Phase 2: Democratic-CSI SSH Key"
-
-SSH_KEY_PATH="/tmp/democratic-csi"
-SSH_KEY_VAULT_PATH="$SSH_KEY_PATH"
-
-if [[ -f "$SSH_KEY_PATH" ]]; then
-    log "SSH key already exists at $SSH_KEY_PATH"
-else
-    log "Generating democratic-csi SSH key..."
-    ssh-keygen -t ed25519 -f "$SSH_KEY_PATH" -N '' -C 'democratic-csi'
-
-    echo ""
-    warn "Add this public key to NixOS users.nix if not already present:"
-    echo ""
-    cat "${SSH_KEY_PATH}.pub"
-    echo ""
-    warn "Then run: sudo nixos-rebuild switch"
-    echo ""
-    read -p "Press Enter after updating NixOS config..."
-fi
-
-# Verify SSH access works
-log "Verifying SSH access for democratic-csi..."
-if ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no -o BatchMode=yes \
-    democratic-csi@localhost "echo 'SSH OK'" &>/dev/null; then
-    log "SSH access verified"
-else
-    error "SSH access failed. Ensure the public key is in NixOS config"
-fi
-
-#############################################
-# PHASE 3: FluxCD Bootstrap
-#############################################
-step "Phase 3: FluxCD Bootstrap"
+step "Phase 2: FluxCD Bootstrap"
 
 if [[ "$SKIP_FLUX" == "true" ]]; then
     log "Skipping FluxCD bootstrap (--skip-flux)"
@@ -142,9 +109,9 @@ else
 fi
 
 #############################################
-# PHASE 4: Wait for Vault Pod
+# PHASE 3: Wait for Vault Pod
 #############################################
-step "Phase 4: Wait for Vault"
+step "Phase 3: Wait for Vault"
 
 log "Waiting for Vault namespace..."
 until kubectl get namespace vault &>/dev/null; do
@@ -165,9 +132,9 @@ VAULT_STATUS=$(kubectl exec -n vault vault-0 -- vault status -format=json 2>/dev
 INITIALIZED=$(echo "$VAULT_STATUS" | grep -o '"initialized": *[^,]*' | awk '{print $2}' || echo "false")
 
 #############################################
-# PHASE 5: Initialize Vault (if needed)
+# PHASE 4: Initialize Vault (if needed)
 #############################################
-step "Phase 5: Vault Initialization"
+step "Phase 4: Vault Initialization"
 
 if [[ "$INITIALIZED" == "true" ]]; then
     log "Vault already initialized"
@@ -213,9 +180,9 @@ EOF
 fi
 
 #############################################
-# PHASE 6: Wait for Vault Unseal & Auth
+# PHASE 5: Wait for Vault Unseal & Auth
 #############################################
-step "Phase 6: Wait for Vault Configuration"
+step "Phase 5: Wait for Vault Configuration"
 
 log "Waiting for Vault to be unsealed..."
 for i in {1..30}; do
@@ -240,9 +207,9 @@ for i in {1..12}; do
 done
 
 #############################################
-# PHASE 7: Populate Secrets
+# PHASE 6: Populate Secrets
 #############################################
-step "Phase 7: Populate Vault Secrets"
+step "Phase 6: Populate Vault Secrets"
 
 # Get root token if not set
 if [[ -z "$VAULT_TOKEN" ]]; then
@@ -271,15 +238,6 @@ if [[ -f "$SCRIPT_DIR/../infrastructure/controllers/vault/init-secrets.sh" ]]; t
         log "Cloudflare token set"
     fi
 
-    # Import democratic-csi SSH key
-    if [[ -f "$SSH_KEY_PATH" ]]; then
-        log "Importing democratic-csi SSH key..."
-        SSH_KEY_CONTENT=$(cat "$SSH_KEY_PATH")
-        kubectl exec -n vault vault-0 -- env VAULT_TOKEN="$VAULT_TOKEN" \
-            vault kv put secret/democratic-csi ssh_private_key="$SSH_KEY_CONTENT"
-        log "SSH key imported"
-    fi
-
     # Run the init script
     bash "$SCRIPT_DIR/../infrastructure/controllers/vault/init-secrets.sh"
 else
@@ -287,9 +245,9 @@ else
 fi
 
 #############################################
-# PHASE 8: Trigger Reconciliation
+# PHASE 7: Trigger Reconciliation
 #############################################
-step "Phase 8: Trigger FluxCD Reconciliation"
+step "Phase 7: Trigger FluxCD Reconciliation"
 
 log "Triggering full reconciliation..."
 flux reconcile kustomization flux-system --with-source
@@ -301,9 +259,9 @@ sleep 5
 flux reconcile kustomization apps --with-source
 
 #############################################
-# PHASE 9: Status Check
+# PHASE 8: Status Check
 #############################################
-step "Phase 9: Deployment Status"
+step "Phase 8: Deployment Status"
 
 log "Checking HelmRelease status..."
 kubectl get helmreleases -A
@@ -344,7 +302,7 @@ Next steps:
    - Check cert-manager logs: kubectl logs -n cert-manager -l app=cert-manager
 
 6. If storage fails:
-   - Verify SSH: ssh -i /tmp/democratic-csi democratic-csi@localhost
-   - Check democratic-csi logs: kubectl logs -n democratic-csi -l app=democratic-csi
+   - Verify controller is on akasha: kubectl get pods -n democratic-csi -o wide
+   - Check democratic-csi logs: kubectl logs -n democratic-csi -l app.kubernetes.io/csi-role=controller -c csi-driver
 
 EOF

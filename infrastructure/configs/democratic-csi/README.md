@@ -3,42 +3,44 @@
 ## Current Setup
 
 - **Driver**: `zfs-generic-nfs`
-- **ZFS Host**: `192.168.10.12` (akasha)
-- **User**: `democratic-csi` (SSH key auth, restricted shell access)
+- **ZFS Host**: `akasha` (192.168.10.12)
+- **Execution**: Local (controller pod pinned to akasha via nodeSelector)
 - **Datasets**: `tank/k8s/volumes` (data), `tank/k8s/snapshots` (snapshots)
 - **Storage Classes**: `zfs-nfs` (default, async), `zfs-nfs-db` (sync, for databases)
 
-## Security Model
+## How It Works
 
-ZFS commands use ZFS delegation (no sudo needed). chown/chmod/mkdir require sudo
-with restricted wrappers in `/etc/democratic-csi/` (immutable, stored in nix store).
+The controller pod is pinned to `akasha` (the ZFS host) using a nodeSelector.
+The host root filesystem is mounted at `/host` inside the container, and the
+container's built-in chroot wrappers (`/usr/local/bin/zfs`, etc.) execute
+`chroot /host` to access the host's ZFS binaries directly.
 
-Sudoers allows:
-- `zfs *` and `zpool *` via restricted wrapper (only `tank/k8s/*` datasets)
-- `chown *`, `chmod *`, `mkdir *` via `/run/current-system/sw/bin/` paths
+This eliminates the need for SSH keys, a dedicated user, or Vault secrets.
 
-## Known Issues / Future Improvements
+## Troubleshooting
 
-### Remove sudo for chown/chmod/mkdir
+1. Verify the controller is running on akasha:
+   ```
+   kubectl get pods -n democratic-csi -o wide
+   ```
 
-The current setup requires `sudoEnabled: true` in the driver config because
-democratic-csi runs `sudo chown 0:0 <mountpoint>` after creating datasets.
+2. Check controller logs:
+   ```
+   kubectl logs -n democratic-csi -l app.kubernetes.io/csi-role=controller -c csi-driver
+   ```
 
-**Option A: Remove permission-setting entirely**
-- Remove `datasetPermissionsUser` and `datasetPermissionsGroup` from driver config
-- Set `datasetPermissionsMode: "0777"` only
-- Handle permissions via ZFS dataset properties at creation time (ZFS delegation)
-- This eliminates all sudo requirements — democratic-csi only needs ZFS commands
-- Trade-off: volumes are world-readable on the ZFS host (but access is controlled
-  by Kubernetes RBAC and NFS export restrictions)
-
-**Option B: Switch to iSCSI (`zfs-generic-iscsi`)**
-- Block-level storage — K8s node handles filesystem and permissions locally
-- No chown/chmod needed on ZFS host
-- Trade-off: requires `targetcli` (iSCSI target) on ZFS host, which also needs sudo
-- Trade-off: ReadWriteOnce only (no ReadWriteMany like NFS)
-- Trade-off: more complex setup (iSCSI initiator on all K8s nodes, LIO on ZFS host)
-- Trade-off: better performance for databases (block-level, no NFS overhead)
-
-**Recommendation**: Option A is the simplest path to eliminating sudo entirely.
-Option B makes sense if database performance becomes a concern.
+3. Test provisioning:
+   ```
+   kubectl apply -f - <<EOF
+   apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata:
+     name: test-pvc
+   spec:
+     storageClassName: zfs-nfs
+     accessModes: [ReadWriteMany]
+     resources:
+       requests:
+         storage: 1Gi
+   EOF
+   ```

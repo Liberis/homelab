@@ -86,15 +86,24 @@ spec:
     controller:
       enabled: true
       strategy: deployment
+      hostPID: true
       externalSnapshotter:
         enabled: true
+      nodeSelector:
+        kubernetes.io/hostname: akasha
+      driver:
+        securityContext:
+          privileged: true
+        extraVolumeMounts:
+          - name: host-root
+            mountPath: /host
+            mountPropagation: Bidirectional
+      extraVolumes:
+        - name: host-root
+          hostPath:
+            path: /
+            type: Directory
 
     node:
       enabled: true
       hostPID: true
-      driver:
-        extraEnv:
-          - name: ISCSIADM_HOST_STRATEGY
-            value: nsenter
-          - name: ISCSIADM_HOST_PATH
-            value: /usr/local/sbin/iscsiadm
