@@ -86,7 +86,6 @@ spec:
     controller:
       enabled: true
       strategy: deployment
-      hostPID: true
       externalSnapshotter:
         enabled: true
       nodeSelector:
@@ -97,12 +96,25 @@ spec:
         extraVolumeMounts:
           - name: host-root
             mountPath: /host
+            readOnly: true
+          - name: host-dev
+            mountPath: /host/dev
+          - name: zfs-data
+            mountPath: /host/tank/k8s
             mountPropagation: Bidirectional
       extraVolumes:
         - name: host-root
           hostPath:
             path: /
             type: Directory
+        - name: host-dev
+          hostPath:
+            path: /dev
+            type: Directory
+        - name: zfs-data
+          hostPath:
+            path: /tank/k8s
+            type: DirectoryOrCreate
 
     node:
       enabled: true
