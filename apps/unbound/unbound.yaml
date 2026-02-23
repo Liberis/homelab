@@ -178,6 +178,8 @@ spec:
         data:
           stats.conf: |
             server:
+                edns-buffer-size: 1232
+                max-udp-size: 1232
                 extended-statistics: yes
                 statistics-cumulative: no
             remote-control:
