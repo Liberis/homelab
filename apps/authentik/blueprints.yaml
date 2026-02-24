@@ -542,6 +542,7 @@ data:
             - !KeyOf funkwhale-provider
           config:
             authentik_host: http://authentik-server.authentik.svc.cluster.local
+            authentik_host_browser: https://auth.liberispat.com
             log_level: info
             object_naming_template: ak-outpost-%(name)s
             kubernetes_replicas: 1
