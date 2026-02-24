@@ -30,7 +30,7 @@ spec:
     deployment:
       replicas: 1
 
-    # Run on control plane
+    # Run on fast network nodes (2.5Gbps)
     nodeSelector:
       kubernetes.io/hostname: akasha
 

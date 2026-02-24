@@ -178,6 +178,8 @@ spec:
         data:
           stats.conf: |
             server:
+                do-ip6: no
+                tcp-upstream: yes
                 edns-buffer-size: 1232
                 max-udp-size: 1232
                 extended-statistics: yes

@@ -43,8 +43,17 @@ spec:
             args:
               - "-in-cluster"
               - "-plugins-dir=/headlamp/plugins"
+              - "-oidc-client-id=headlamp"
+              - "-oidc-client-secret=$(HEADLAMP_OIDC_CLIENT_SECRET)"
+              - "-oidc-idp-issuer-url=https://auth.liberispat.com/application/o/headlamp/"
+              - "-oidc-scopes=openid,profile,email"
             env:
               TZ: "Europe/London"
+              HEADLAMP_OIDC_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: headlamp-oidc-credentials
+                    key: HEADLAMP_OIDC_CLIENT_SECRET
             probes:
               liveness:
                 enabled: true

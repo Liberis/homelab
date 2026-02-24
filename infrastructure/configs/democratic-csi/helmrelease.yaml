@@ -102,6 +102,22 @@ spec:
           - name: zfs-data
             mountPath: /host/tank/k8s
             mountPropagation: Bidirectional
+          # Mask sensitive host paths with empty volumes
+          - name: mask-ssh
+            mountPath: /host/etc/ssh
+            readOnly: true
+          - name: mask-shadow
+            mountPath: /host/etc/shadow
+            readOnly: true
+          - name: mask-k3s-config
+            mountPath: /host/etc/rancher
+            readOnly: true
+          - name: mask-k3s-data
+            mountPath: /host/var/lib/rancher
+            readOnly: true
+          - name: mask-root-home
+            mountPath: /host/root
+            readOnly: true
       extraVolumes:
         - name: host-root
           hostPath:
@@ -115,6 +131,16 @@ spec:
           hostPath:
             path: /tank/k8s
             type: DirectoryOrCreate
+        - name: mask-ssh
+          emptyDir: {}
+        - name: mask-shadow
+          emptyDir: {}
+        - name: mask-k3s-config
+          emptyDir: {}
+        - name: mask-k3s-data
+          emptyDir: {}
+        - name: mask-root-home
+          emptyDir: {}
 
     node:
       enabled: true
