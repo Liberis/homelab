@@ -180,6 +180,7 @@ spec:
             server:
                 do-ip6: no
                 tcp-upstream: yes
+                tls-cert-bundle: "/etc/ssl/certs/ca-certificates.crt"
                 edns-buffer-size: 1232
                 max-udp-size: 1232
                 extended-statistics: yes
@@ -189,3 +190,8 @@ spec:
                 control-interface: 127.0.0.1
                 control-port: 8953
                 control-use-cert: no
+            forward-zone:
+                name: "."
+                forward-tls-upstream: yes
+                forward-addr: 9.9.9.9@853#dns.quad9.net
+                forward-addr: 149.112.112.112@853#dns.quad9.net
