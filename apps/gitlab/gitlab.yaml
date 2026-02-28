@@ -65,13 +65,16 @@ spec:
                 gitlab_rails['omniauth_sync_profile_attributes'] = ['name', 'email']
                 gitlab_rails['omniauth_block_auto_created_users'] = false
                 gitlab_rails['omniauth_auto_link_user'] = ['openid_connect']
+                # Map Authentik 'admins' group to GitLab admin role
+                gitlab_rails['omniauth_allow_bypass_two_factor'] = ['openid_connect']
+                gitlab_rails['omniauth_admin_groups'] = ['admins']
                 gitlab_rails['omniauth_providers'] = [
                   {
                     name: "openid_connect",
                     label: "Authentik",
                     args: {
                       name: "openid_connect",
-                      scope: ["openid", "profile", "email"],
+                      scope: ["openid", "profile", "email", "groups"],
                       response_type: "code",
                       issuer: "https://auth.liberispat.com/application/o/gitlab/",
                       discovery: true,

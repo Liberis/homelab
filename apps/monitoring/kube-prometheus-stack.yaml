@@ -78,7 +78,7 @@ spec:
           allow_sign_up: true
           client_id: grafana
           client_secret: ${GRAFANA_OIDC_CLIENT_SECRET}
-          scopes: openid profile email
+          scopes: openid profile email groups
           auth_url: https://auth.liberispat.com/application/o/authorize/
           token_url: https://auth.liberispat.com/application/o/token/
           api_url: https://auth.liberispat.com/application/o/userinfo/

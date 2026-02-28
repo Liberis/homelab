@@ -5,6 +5,26 @@ metadata:
   name: authentik-blueprints
   namespace: authentik
 data:
+  # Custom OIDC scope mapping for groups
+  # Processed first (alphabetical) so providers can reference it via !Find
+  00-scopes.yaml: |
+    version: 1
+    metadata:
+      name: Custom Scope Mappings
+    entries:
+      - model: authentik_providers_oauth2.scopemapping
+        id: groups-scope
+        identifiers:
+          name: "OIDC Groups"
+        attrs:
+          name: "OIDC Groups"
+          scope_name: "groups"
+          description: "Returns user group memberships as a groups claim"
+          expression: |
+            return {
+              "groups": [group.name for group in request.user.ak_groups.all()],
+            }
+
   # Kubernetes Service Connection for Outpost
   service-connection.yaml: |
     version: 1
@@ -49,6 +69,7 @@ data:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !Find [authentik_providers_oauth2.scopemapping, [name, OIDC Groups]]
           sub_mode: hashed_user_id
       - model: authentik_core.application
         id: grafana-app
@@ -92,6 +113,7 @@ data:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !Find [authentik_providers_oauth2.scopemapping, [name, OIDC Groups]]
           sub_mode: hashed_user_id
       - model: authentik_core.application
         id: immich-app
@@ -131,6 +153,7 @@ data:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !Find [authentik_providers_oauth2.scopemapping, [name, OIDC Groups]]
           sub_mode: hashed_user_id
       - model: authentik_core.application
         id: gitlab-app
@@ -170,6 +193,7 @@ data:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !Find [authentik_providers_oauth2.scopemapping, [name, OIDC Groups]]
           sub_mode: hashed_user_id
       - model: authentik_core.application
         id: mealie-app
@@ -209,6 +233,7 @@ data:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !Find [authentik_providers_oauth2.scopemapping, [name, OIDC Groups]]
           sub_mode: hashed_user_id
       - model: authentik_core.application
         id: vikunja-app
@@ -248,6 +273,7 @@ data:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !Find [authentik_providers_oauth2.scopemapping, [name, OIDC Groups]]
           sub_mode: hashed_user_id
       - model: authentik_core.application
         id: paperless-app
@@ -581,6 +607,7 @@ data:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !Find [authentik_providers_oauth2.scopemapping, [name, OIDC Groups]]
           sub_mode: hashed_user_id
       - model: authentik_core.application
         id: headlamp-app
@@ -620,6 +647,7 @@ data:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !Find [authentik_providers_oauth2.scopemapping, [name, OIDC Groups]]
           sub_mode: hashed_user_id
       - model: authentik_core.application
         id: harbor-app
